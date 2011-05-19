@@ -1,0 +1,32 @@
+
+div
+    .header
+        margin: 20px
+ul
+    .mainbar
+        list-style-type: none
+        margin: 0
+        padding: 0
+li
+    .entry
+        display: inline
+        color: #114d34
+        text-decoration: none
+        text-transform: uppercase
+        font-family: "Arial", Arial, sans-serif
+        font-size: 0.95em
+    .separator
+        display: inline
+        margin-left: 5px
+        margin-right: 5px
+        font-family: "Arial", Arial, sans-serif
+        font-size: 1.5em
+-- a:link
+--         color: #114d34
+--         text-decoration: none
+--         text-transform: uppercase
+--         font-family: "Arial", Arial, sans-serif
+--         font-size: 0.95em
+        
+a:hover
+        color: #96a97e

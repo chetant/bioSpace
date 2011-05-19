@@ -16,4 +16,5 @@ getRootR = do
     defaultLayout $ do
         h2id <- lift newIdent
         setTitle "bioSpace homepage"
+        addWidget $(widgetFile "header")
         addWidget $(widgetFile "homepage")
