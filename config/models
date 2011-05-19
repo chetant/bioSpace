@@ -7,3 +7,53 @@ Email
     user UserId Maybe Update
     verkey Text Maybe Update
     UniqueEmail email
+
+Profile
+    user UserId Eq
+    firstName Text
+    lastName Text
+    about Text
+    UniqueProfile user
+
+Tag
+    tag Text
+    UniqueTag tag
+
+Project
+    name Text Eq
+    description Text
+    UniqueProject name
+ProjectUser
+    project ProjectId Eq
+    user UserId Eq
+    UniqueProjectUser user project
+ProjectTag
+    project ProjectId Eq
+    tag TagId Eq
+    UniqueProjectTag project tag
+
+BlogEntry
+    slug Text
+    title Text
+    contents Text
+BlogEntryTag
+    blogEntry BlogEntryId Eq
+    tag TagId Eq
+    UniqueBlogEntryTag blogEntry tag
+BlogEntryAuthor
+    blogEntry BlogEntryId Eq
+    author UserId Eq
+    UniqueBlogEntryAuthor blogEntry author
+
+Event
+    date Day Eq Desc
+    time TimeOfDay Eq Desc
+    title Text
+    description Text
+    price Int
+    organizer UserId Eq
+    UniqueEvent date time title
+EventTag
+    event EventId Eq
+    tag TagId Eq
+    UniqueEventTag event tag
