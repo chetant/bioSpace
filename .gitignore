@@ -1,0 +1,5 @@
+*~
+static/tmp/*
+dist/
+debug.db3
+
