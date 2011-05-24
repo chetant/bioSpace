@@ -31,5 +31,3 @@ a:hover
 img
     .logo
         display: inline
-        -- float: left
-        -- vertical-align: text-bottom

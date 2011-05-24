@@ -11,12 +11,15 @@ import BioSpace
 import Settings
 import Yesod.Helpers.Static
 import Yesod.Helpers.Auth
+import Yesod.Helpers.Auth.HashDB(migrateUsers)
 import Database.Persist.GenericSql
 import Data.ByteString (ByteString)
 import Data.Dynamic (Dynamic, toDyn)
 
 -- Import all relevant handler modules here.
 import Handler.Root
+import Handler.Dashboard
+import Handler.Profile
 
 -- This line actually creates our YesodSite instance. It is the second half
 -- of the call to mkYesodData which occurs in BioSpace.hs. Please see
@@ -37,7 +40,7 @@ getRobotsR = return $ RepPlain $ toContent ("User-agent: *" :: ByteString)
 -- migrations handled by Yesod.
 withBioSpace :: (Application -> IO a) -> IO a
 withBioSpace f = Settings.withConnectionPool $ \p -> do
-    runConnectionPool (runMigration migrateAll) p
+    runConnectionPool (runMigration migrateAll >> runMigration migrateUsers) p
     let h = BioSpace s p
     toWaiApp h >>= f
   where

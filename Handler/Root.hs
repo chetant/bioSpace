@@ -15,6 +15,11 @@ getRootR = do
     mu <- maybeAuth
     defaultLayout $ do
         h2id <- lift newIdent
-        setTitle "bioSpace homepage"
-        addWidget $(widgetFile "header")
+        setTitle "Welcome to Genspace"
         addWidget $(widgetFile "homepage")
+
+-- getInstallR :: Handler RepHtml
+-- getInstallR = undefined
+--   defaultLayout $ do
+--                 runDb
+--                 setTitle "bioSpace Installation"

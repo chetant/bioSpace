@@ -32,6 +32,8 @@ library
                      Settings
                      StaticFiles
                      Handler.Root
+                     Handler.Dashboard
+                     Handler.Profile
 
 executable         bioSpace
     if flag(devel)

@@ -18,8 +18,7 @@ module BioSpace
 import Yesod
 import Yesod.Helpers.Static
 import Yesod.Helpers.Auth
-import Yesod.Helpers.Auth.OpenId
-import Yesod.Helpers.Auth.Email
+import Yesod.Helpers.Auth.HashDB
 import qualified Settings
 import System.Directory
 import qualified Data.ByteString.Lazy as L
@@ -121,87 +120,7 @@ instance YesodPersist BioSpace where
 
 instance YesodAuth BioSpace where
     type AuthId BioSpace = UserId
-
-    -- Where to send a user after successful login
-    loginDest _ = RootR
-    -- Where to send a user after logout
+    loginDest _ = DashboardR
     logoutDest _ = RootR
-
-    getAuthId creds = runDB $ do
-        x <- getBy $ UniqueUser $ credsIdent creds
-        case x of
-            Just (uid, _) -> return $ Just uid
-            Nothing -> do
-                fmap Just $ insert $ User (credsIdent creds) Nothing
-
-    authPlugins = [ authOpenId
-                  , authEmail
-                  ]
-
-instance YesodAuthEmail BioSpace where
-    type AuthEmailId BioSpace = EmailId
-
-    addUnverified email verkey =
-        runDB $ insert $ Email email Nothing $ Just verkey
-    sendVerifyEmail email _ verurl = liftIO $ renderSendMail Mail
-        { mailHeaders =
-            [ ("From", "noreply")
-            , ("To", email)
-            , ("Subject", "Verify your email address")
-            ]
-        , mailParts = [[textPart, htmlPart]]
-        }
-      where
-        textPart = Part
-            { partType = "text/plain; charset=utf-8"
-            , partEncoding = None
-            , partFilename = Nothing
-            , partContent = Data.Text.Lazy.Encoding.encodeUtf8
-                          $ Data.Text.Lazy.unlines
-                [ "Please confirm your email address by clicking on the link below."
-                , ""
-                , Data.Text.Lazy.fromChunks [verurl]
-                , ""
-                , "Thank you"
-                ]
-            , partHeaders = []
-            }
-        htmlPart = Part
-            { partType = "text/html; charset=utf-8"
-            , partEncoding = None
-            , partFilename = Nothing
-            , partContent = renderHtml [hamlet|
-<p>Please confirm your email address by clicking on the link below.
-<p>
-    <a href=#{verurl}>#{verurl}
-<p>Thank you
-|]
-            , partHeaders = []
-            }
-    getVerifyKey = runDB . fmap (join . fmap emailVerkey) . get
-    setVerifyKey eid key = runDB $ update eid [EmailVerkey $ Just key]
-    verifyAccount eid = runDB $ do
-        me <- get eid
-        case me of
-            Nothing -> return Nothing
-            Just e -> do
-                let email = emailEmail e
-                case emailUser e of
-                    Just uid -> return $ Just uid
-                    Nothing -> do
-                        uid <- insert $ User email Nothing
-                        update eid [EmailUser $ Just uid, EmailVerkey Nothing]
-                        return $ Just uid
-    getPassword = runDB . fmap (join . fmap userPassword) . get
-    setPassword uid pass = runDB $ update uid [UserPassword $ Just pass]
-    getEmailCreds email = runDB $ do
-        me <- getBy $ UniqueEmail email
-        case me of
-            Nothing -> return Nothing
-            Just (eid, e) -> return $ Just EmailCreds
-                { emailCredsId = eid
-                , emailCredsAuthId = emailUser e
-                , emailCredsStatus = isJust $ emailUser e
-                , emailCredsVerkey = emailVerkey e
-                }
-    getEmail = runDB . fmap (fmap emailEmail) . get
+    getAuthId = getAuthIdHashDB AuthR
+    authPlugins = [authHashDB]
