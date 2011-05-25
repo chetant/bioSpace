@@ -8,4 +8,4 @@
 /dashboard DashboardR GET
 
 /people PeopleR GET
-/person/#ProfileId PersonR GET
+/person/#Text/#Text PersonR GET

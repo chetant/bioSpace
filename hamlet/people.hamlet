@@ -1,5 +1,4 @@
-<h1>People
+<h1>Team Genspace
 $forall entry <- people
     <p>
-       <a href=@{PersonR (fst entry)}> #{profileFirstName (snd entry)} #{profileLastName (snd entry)}
-        .
+       <a href=@{PersonR (profileFirstName (snd entry)) (profileLastName (snd entry))} .normallink> #{profileFirstName (snd entry)} #{profileLastName (snd entry)}

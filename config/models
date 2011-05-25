@@ -5,6 +5,8 @@ Profile
     firstName Text
     lastName Text
     about Text
+    email Text Maybe
+    website Text Maybe
     isAdmin Bool Eq default=False
     UniqueProfile user
     ProfileFullName firstName lastName

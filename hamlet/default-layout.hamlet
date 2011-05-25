@@ -25,6 +25,9 @@
                  <li .separator>|
                  <li .entry>
                       <a .entry href=/blog >Blog
+        <div .header>
+             <hr>
         $maybe msg <- mmsg
             <div #message>#{msg}
-        ^{pageBody pc}
+        <div .body>
+            ^{pageBody pc}
