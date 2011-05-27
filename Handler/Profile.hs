@@ -9,26 +9,30 @@ import BioSpace
 getPeopleR :: Handler RepHtml
 getPeopleR = do
   -- getBy $ UniqueProfile (fst mu)
+  mu <- maybeAuth
   people <- runDB $ selectList [] [] 0 0
+  isAdmin <- maybe (return False) checkAdmin mu
   defaultLayout $ do
                setTitle "Genspace - People"
                addWidget $(widgetFile "people")
 
--- getPersonR :: Handler RepHtml
--- getPersonR profileId = do
---   person <- runDB $ get404 profileId
---   mu <- maybeAuth
---   defaultLayout $ do
---     setTitle "Genspace - People"
---     addWidget $(widgetFile "person")
+getPersonR fName lName = do
+  (pId, person) <- runDB $ getBy404 $ ProfileFullName fName lName
+  mu <- maybeAuth
+  canEdit <- maybe (return False) (checkAuth pId) mu
+  defaultLayout $ do
+    setTitle "Genspace - People"
+    addWidget $(widgetFile "person")
 
 mangleEmail :: Text -> Text
 mangleEmail emailAddx = user `Text.append` " < at > " `Text.append` domain
     where (user, domain) = Text.breakOn "@" emailAddx
 
-getPersonR fName lName = do
-  (pId, person) <- runDB $ getBy404 $ ProfileFullName fName lName
-  mu <- maybeAuth
-  defaultLayout $ do
-    setTitle "Genspace - People"
-    addWidget $(widgetFile "person")
+checkAdmin (uid,_) = do
+  (uId, user) <- runDB $ getBy404 $ UniqueProfile uid
+  return $ profileIsAdmin user
+
+checkAuth pId (uid,_) = do
+  (uId, user) <- runDB $ getBy404 $ UniqueProfile uid
+  return $ (uId == pId) || (profileIsAdmin user)
+
