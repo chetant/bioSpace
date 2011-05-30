@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies #-}
+{-# LANGUAGE QuasiQuotes, TemplateHaskell, TypeFamilies, FlexibleInstances, MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 module BioSpace
     ( BioSpace (..)
@@ -17,8 +17,9 @@ module BioSpace
 
 import Yesod
 import Yesod.Helpers.Static
-import Yesod.Helpers.Auth
-import Yesod.Helpers.Auth.HashDB
+import Yesod.Auth
+import Yesod.Form
+import Yesod.Auth.HashDB
 import qualified Settings
 import System.Directory
 import qualified Data.ByteString.Lazy as L
@@ -125,3 +126,6 @@ instance YesodAuth BioSpace where
     logoutDest _ = RootR
     getAuthId = getAuthIdHashDB AuthR
     authPlugins = [authHashDB]
+
+instance Yesod m => RenderMessage m FormMessage where
+    renderMessage _ _ = defaultFormMessage

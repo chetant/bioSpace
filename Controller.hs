@@ -10,8 +10,8 @@ module Controller
 import BioSpace
 import Settings
 import Yesod.Helpers.Static
-import Yesod.Helpers.Auth
-import Yesod.Helpers.Auth.HashDB(migrateUsers)
+import Yesod.Auth
+import Yesod.Auth.HashDB(migrateUsers)
 import Database.Persist.GenericSql
 import Data.ByteString (ByteString)
 import Data.Dynamic (Dynamic, toDyn)

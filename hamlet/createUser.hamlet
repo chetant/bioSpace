@@ -1,0 +1,4 @@
+<h1> Create User
+<form enctype="#{enctype}" method=POST>
+      ^{form}
+      <input type="submit" value="Create">

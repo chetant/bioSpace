@@ -1,4 +1,6 @@
 <h1>Team Genspace
 $forall entry <- people
     <p>
-       <a href=@{PersonR (profileFirstName (snd entry)) (profileLastName (snd entry))} .normallink> #{profileFirstName (snd entry)} #{profileLastName (snd entry)}
+    $if (profileIsVisible entry)
+        <div>
+            <a href=@{PersonR (profileFirstName entry) (profileLastName entry)} .normallink> #{profileFirstName entry} #{profileLastName entry}

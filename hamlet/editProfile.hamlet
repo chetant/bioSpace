@@ -1,0 +1,4 @@
+<h1> Edit Profile
+<form enctype="#{enctype}" method=POST>
+      ^{form}
+      <input type="submit" value="Submit">

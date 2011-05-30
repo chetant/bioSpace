@@ -2,7 +2,7 @@
 module Model where
 
 import Yesod
-import Yesod.Helpers.Auth.HashDB
+import Yesod.Auth.HashDB
 import Data.Text (Text)
 import Data.Time
 

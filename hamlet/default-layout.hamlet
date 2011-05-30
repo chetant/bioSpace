@@ -6,7 +6,7 @@
     <body
         <div .header>
              <a href=/>
-                 <img .logo src=/static/GenspaceHeaderLogo.jpg alt=Logo>
+                 <img .logo src=/static/img/GenspaceHeaderLogo.jpg alt=Logo>
              <ul .mainbar>
                  <li .entry>
                       <a .entry href=/about >About

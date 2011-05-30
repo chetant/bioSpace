@@ -6,9 +6,9 @@
 $if canEdit
     <p> Can Edit!
     $maybe photoURL <- profileFullImage person
-        <img .profilepic src=/static/#{photoURL}>
+        <img .profilepic src=/static/uploaded/#{photoURL}>
     $nothing
-        <img .profilepic src=/static/noPhoto.png>
+        <img .profilepic src=/static/img/NoPhoto.png>
     <h2> #{profileFirstName person} #{profileLastName person}
     <p>#{profileAbout person}
     <p .email>
@@ -20,9 +20,9 @@ $if canEdit
             <a href=#{website}>#{website}
 $else
     $maybe photoURL <- profileFullImage person
-        <img .profilepic src=/static/#{photoURL}>
+        <img .profilepic src=/static/uploaded/#{photoURL}>
     $nothing
-        <img .profilepic src=/static/noPhoto.png>
+        <img .profilepic src=/static/img/NoPhoto.png>
     <h2> #{profileFirstName person} #{profileLastName person}
     <p>#{profileAbout person}
     <p .email>

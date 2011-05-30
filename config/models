@@ -1,5 +1,7 @@
 Profile
     user UserId Eq
+    isAdmin Bool Eq default=False
+    isVisible Bool Eq default=False
     iconImage Text Maybe
     fullImage Text Maybe
     firstName Text
@@ -7,7 +9,6 @@ Profile
     about Text
     email Text Maybe
     website Text Maybe
-    isAdmin Bool Eq default=False
     UniqueProfile user
     ProfileFullName firstName lastName
 

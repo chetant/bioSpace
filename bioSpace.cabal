@@ -52,6 +52,7 @@ executable         bioSpace
                  , yesod        >= 0.8     && < 0.9
                  , yesod-auth
                  , yesod-static
+                 , yesod-form
                  , mime-mail
                  , wai-extra
                  , directory

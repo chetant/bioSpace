@@ -9,3 +9,6 @@
 
 /people PeopleR GET
 /person/#Text/#Text PersonR GET
+/person/edit/#Text/#Text EditPersonR GET
+
+/admin/user/create PersonCreateR GET POST
