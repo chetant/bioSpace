@@ -54,6 +54,9 @@ postPersonCreateR = do
                              insert $ Profile uid False False Nothing Nothing 
                                    "New" "User" "Something about the user" Nothing Nothing
                       redirect RedirectTemporary (PersonEditR "New" "User")
+    FormFailure ts -> do
+                      setMessage . toHtml $ foldr (\a b -> a `Text.append` ", " `Text.append` b) "" ts
+                      redirect RedirectTemporary PersonCreateR
     _ -> redirect RedirectTemporary PersonCreateR
 
 getPersonEditR :: Text -> Text -> Handler RepHtml
@@ -81,6 +84,9 @@ postPersonEditR fName lName = do
              when ((not isAdmin) && profileIsAdmin profile) $ permissionDenied "Not Authorized"
              runDB $ replace pId profile
              redirect RedirectTemporary (PersonR (profileFirstName profile) (profileLastName profile))
+    FormFailure ts -> do
+             setMessage . toHtml $ foldr (\a b -> a `Text.append` ", " `Text.append` b) "" ts
+             redirect RedirectTemporary (PersonEditR "New" "User")
     _ -> redirect RedirectTemporary (PersonEditR "New" "User")
 
 getPersonDeleteR :: Text -> Text -> Handler RepHtml
@@ -109,6 +115,7 @@ postPersonDeleteR fName lName = do
   ((res, form), enctype) <- runFormPost $ renderDivs $ areq boolField "Confirmed" (Just False)
   case res of
     FormSuccess True -> runDB $ delete pId >> delete (profileUser person)
+    FormFailure ts -> setMessage . toHtml $ foldr (\a b -> a `Text.append` ", " `Text.append` b) "" ts
     _ -> return ()
   redirect RedirectTemporary PeopleR
 
@@ -134,6 +141,9 @@ postAdminCreateR = do
                              insert $ Profile uid True False Nothing Nothing 
                                    "Admin" "Administrator" "overseer of the site!" Nothing Nothing
                       redirect RedirectTemporary RootR
+    FormFailure ts -> do
+                     setMessage . toHtml $ foldr (\a b -> a `Text.append` ", " `Text.append` b) "" ts
+                     redirect RedirectTemporary AdminCreateR
     _ -> redirect RedirectTemporary AdminCreateR
 
 
@@ -156,6 +166,7 @@ postChangePasswdR = do
   ((res, form), enctype) <- runFormPost $ renderTable $ areq passwordField "New Password" Nothing
   case res of
     FormSuccess newPasswd -> runDB $ changePasswd uId newPasswd
+    FormFailure ts -> setMessage . toHtml $ foldr (\a b -> a `Text.append` ", " `Text.append` b) "" ts
     _ -> return ()
   redirect RedirectTemporary DashboardR
 
