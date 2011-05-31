@@ -4,31 +4,18 @@
     \ > #{profileFirstName person} #{profileLastName person}
 <hr>
 $if canEdit
-    <p> Can Edit!
-    $maybe photoURL <- profileFullImage person
-        <img .profilepic src=/static/uploaded/#{photoURL}>
-    $nothing
-        <img .profilepic src=/static/img/NoPhoto.png>
-    <h2> #{profileFirstName person} #{profileLastName person}
-    <p>#{profileAbout person}
-    <p .email>
-        $maybe email <- profileEmail person
-            Email: #{mangleEmail email}
-    <p .website>
-        $maybe website <- profileWebsite person
-            Website: 
-            <a href=#{website}>#{website}
-$else
-    $maybe photoURL <- profileFullImage person
-        <img .profilepic src=/static/uploaded/#{photoURL}>
-    $nothing
-        <img .profilepic src=/static/img/NoPhoto.png>
-    <h2> #{profileFirstName person} #{profileLastName person}
-    <p>#{profileAbout person}
-    <p .email>
-        $maybe email <- profileEmail person
-            Email: #{mangleEmail email}
-    <p .website>
-        $maybe website <- profileWebsite person
-            Website: 
-            <a href=#{website}>#{website}
+    <div>
+        <a href=@{PersonEditR (profileFirstName person) (profileLastName person)}>Edit Profile
+$maybe photoURL <- profileFullImage person
+    <img .profilepic src=/static/uploaded/#{photoURL}>
+$nothing
+    <img .profilepic src=/static/img/NoPhoto.png>
+<h2> #{profileFirstName person} #{profileLastName person}
+<p>#{profileAbout person}
+<p .email>
+    $maybe email <- profileEmail person
+        Email: #{mangleEmail email}
+<p .website>
+    $maybe website <- profileWebsite person
+        Website: 
+        <a href=#{website}>#{website}

@@ -1,14 +1,14 @@
 Profile
     user UserId Eq
-    isAdmin Bool Eq default=False
-    isVisible Bool Eq default=False
-    iconImage Text Maybe
-    fullImage Text Maybe
-    firstName Text
-    lastName Text
-    about Text
-    email Text Maybe
-    website Text Maybe
+    isAdmin Bool Update Eq default=False
+    isVisible Bool Update Eq default=False
+    iconImage Text Update Maybe
+    fullImage Text Update Maybe
+    firstName Text Update 
+    lastName Text Update 
+    about Text Update 
+    email Text Maybe Update 
+    website Text Maybe Update 
     UniqueProfile user
     ProfileFullName firstName lastName
 

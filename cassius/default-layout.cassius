@@ -6,6 +6,8 @@ div
         margin: 20px
     .body
         margin: 20px
+    .inline
+        display: inline
 ul
     .mainbar
         list-style-type: none

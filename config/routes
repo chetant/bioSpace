@@ -6,9 +6,12 @@
 
 / RootR GET
 /dashboard DashboardR GET
+/changepasswd ChangePasswdR GET POST
 
 /people PeopleR GET
 /person/#Text/#Text PersonR GET
-/person/edit/#Text/#Text EditPersonR GET
+/person/edit/#Text/#Text PersonEditR GET POST
+/person/delete/#Text/#Text PersonDeleteR GET POST
 
 /admin/user/create PersonCreateR GET POST
+/setup AdminCreateR GET POST

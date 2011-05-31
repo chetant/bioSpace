@@ -1,6 +1,13 @@
 <h1>Team Genspace
+$if isAdmin
+    <a href=@{PersonCreateR}>Create New User
 $forall entry <- people
     <p>
     $if (profileIsVisible entry)
         <div>
             <a href=@{PersonR (profileFirstName entry) (profileLastName entry)} .normallink> #{profileFirstName entry} #{profileLastName entry}
+	    $if isAdmin
+	        <div .inline>
+                    <a href=@{PersonEditR (profileFirstName entry) (profileLastName entry)}>Edit
+		    \    #
+	            <a href=@{PersonDeleteR (profileFirstName entry) (profileLastName entry)}>Delete
