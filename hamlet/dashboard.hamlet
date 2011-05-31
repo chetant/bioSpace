@@ -1,0 +1,11 @@
+$maybe profile <- mprofile
+    <h1>Welcome Back, #{profileFirstName profile}
+$nothing
+    <h1>Dashboard
+$maybe profile <- mprofile
+    <div>
+        <a href=@{PersonEditR (profileFirstName profile) (profileLastName profile)}>Edit Profile
+<div>
+    <a href=@{ChangePasswdR}>Change Password
+<div>
+    <a href=@{AuthR LogoutR}>Logout
