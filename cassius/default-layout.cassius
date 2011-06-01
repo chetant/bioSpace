@@ -42,7 +42,6 @@ a
     :hover
         color: #96a97e
     .headlink
-        
         text-transform: uppercase
         color: #96a97e
     .headlink:hover
@@ -50,6 +49,8 @@ a
     .normallink
         text-decoration: none
         color: #114d34
+    .invisible
+        color: #cccccc
 
 h1
     color: #114d34

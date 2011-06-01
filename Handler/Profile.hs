@@ -65,7 +65,8 @@ getPersonEditR fName lName = do
   (pId, person) <- runDB $ getBy404 $ ProfileFullName fName lName
   canEdit <- checkAuth pId uId
   unless canEdit $ permissionDenied "Not Authorized"
-  ((res, form), enctype) <- runFormPost $ profileFormlet uId False True (Just person)
+  isAdmin <- checkAdmin uId
+  ((res, form), enctype) <- runFormPost $ profileFormlet uId isAdmin (Just person)
   defaultLayout $ do
     setTitle $ toHtml ("Edit Profile - " <++> fName <++> " " <++> lName)
     addWidget $(widgetFile "editProfile")
@@ -77,7 +78,7 @@ postPersonEditR fName lName = do
   canEdit <- checkAuth pId uId
   unless canEdit $ permissionDenied "Not Authorized"
   isAdmin <- checkAdmin uId
-  ((res, form), enctype) <- runFormPost $ profileFormlet (profileUser person) False True Nothing
+  ((res, form), enctype) <- runFormPost $ profileFormlet (profileUser person) isAdmin Nothing
   case res of
     FormSuccess profile -> do
              -- Only Admin can make profile.isAdmin = True
@@ -188,7 +189,18 @@ userFormlet user = renderDivs $ LclUser
                    <$> areq textField "Username" (username <$> user)
                    <*> areq passwordField "Password" (passwd <$> user)
 
-profileFormlet uid isAdmin isVisible p = renderTable $ Profile uid isAdmin isVisible Nothing Nothing
+profileFormlet uid True p = renderTable $ Profile uid
+                   <$> areq boolField "Admin Rights" (profileIsAdmin <$> p)
+                   <*> areq boolField "Profile Visible" (profileIsVisible <$> p)
+                   <*> (aopt textField "Img1" (profileIconImage <$> p))
+                   <*> (aopt textField "Img2" (profileFullImage <$> p))
+                   <*> areq textField "First Name" (profileFirstName <$> p)
+                   <*> areq textField "Last Name" (profileLastName <$> p)
+                   <*> (unTextarea <$> areq textareaField "Description" (Textarea . profileAbout <$> p))
+                   <*> aopt emailField "Email" (profileEmail <$> p)
+                   <*> aopt urlField "Website" (profileWebsite <$> p)
+
+profileFormlet uid False p = renderTable $ Profile uid (maybe False id $ profileIsAdmin <$> p) (maybe True id $ profileIsVisible <$> p) Nothing Nothing
                    <$> areq textField "First Name" (profileFirstName <$> p)
                    <*> areq textField "Last Name" (profileLastName <$> p)
                    <*> (unTextarea <$> areq textareaField "Description" (Textarea . profileAbout <$> p))

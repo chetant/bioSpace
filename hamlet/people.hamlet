@@ -6,8 +6,12 @@ $forall entry <- people
     $if (profileIsVisible entry)
         <div>
             <a href=@{PersonR (profileFirstName entry) (profileLastName entry)} .normallink> #{profileFirstName entry} #{profileLastName entry}
-	    $if isAdmin
-	        <div .inline>
-                    <a href=@{PersonEditR (profileFirstName entry) (profileLastName entry)}>Edit
-		    \    #
-	            <a href=@{PersonDeleteR (profileFirstName entry) (profileLastName entry)}>Delete
+    $else
+        $if isAdmin
+            <div>
+                <a .invisible href=@{PersonR (profileFirstName entry) (profileLastName entry)} .normallink> Invisible: #{profileFirstName entry} #{profileLastName entry}
+    $if isAdmin
+        <div .inline>
+            <a href=@{PersonEditR (profileFirstName entry) (profileLastName entry)}>Edit
+            \    #
+            <a href=@{PersonDeleteR (profileFirstName entry) (profileLastName entry)}>Delete
