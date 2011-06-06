@@ -34,6 +34,7 @@ library
                      Handler.Root
                      Handler.Dashboard
                      Handler.Profile
+                     Fields.ImageUpload
 
 executable         bioSpace
     if flag(devel)
@@ -69,3 +70,5 @@ executable         bioSpace
                  , warp
                  , blaze-builder
                  , time
+                 , filepath
+                 , gd >= 3000 && < 4000

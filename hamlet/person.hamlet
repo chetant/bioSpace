@@ -7,7 +7,7 @@ $if canEdit
     <div>
         <a href=@{PersonEditR (profileFirstName person) (profileLastName person)}>Edit Profile
 $maybe photoURL <- profileFullImage person
-    <img .profilepic src=/static/uploaded/#{photoURL}>
+    <img .profilepic src=/static/uploads/#{photoURL}>
 $nothing
     <img .profilepic src=/static/img/NoPhoto.png>
 <h2> #{profileFirstName person} #{profileLastName person}

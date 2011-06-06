@@ -9,6 +9,8 @@ import Data.String
 import Yesod.Auth
 import Yesod.Auth.HashDB(UserId, addUser, changePasswd)
 import Yesod.Form.Nic
+
+import Fields.ImageUpload
 import BioSpace
 
 (<++>) = Text.append
@@ -55,7 +57,7 @@ postPersonCreateR = do
                                    "New" "User" "Something about the user" Nothing Nothing
                       redirect RedirectTemporary (PersonEditR "New" "User")
     FormFailure ts -> do
-                      setMessage . toHtml $ foldr (\a b -> a `Text.append` ", " `Text.append` b) "" ts
+                      setMessage . toHtml $ foldr (\a b -> a <++> ", " <++> b) "" ts
                       redirect RedirectTemporary PersonCreateR
     _ -> redirect RedirectTemporary PersonCreateR
 
@@ -82,13 +84,16 @@ postPersonEditR fName lName = do
   case res of
     FormSuccess profile -> do
              -- Only Admin can make profile.isAdmin = True
+             liftIO $ putStrLn $ "Got Person:" ++ show profile
              when ((not isAdmin) && profileIsAdmin profile) $ permissionDenied "Not Authorized"
+             liftIO $ putStrLn "REPLACE!"
              runDB $ replace pId profile
              redirect RedirectTemporary (PersonR (profileFirstName profile) (profileLastName profile))
     FormFailure ts -> do
-             setMessage . toHtml $ foldr (\a b -> a `Text.append` ", " `Text.append` b) "" ts
-             redirect RedirectTemporary (PersonEditR "New" "User")
-    _ -> redirect RedirectTemporary (PersonEditR "New" "User")
+             setMessage . toHtml $ foldr (\a b -> a <++> ", " <++> b) "" ts
+             redirect RedirectTemporary (PersonEditR fName lName)
+    _ -> do setMessage . toHtml . Text.pack $ "Form missing!"
+            redirect RedirectTemporary (PersonEditR fName lName)
 
 getPersonDeleteR :: Text -> Text -> Handler RepHtml
 getPersonDeleteR fName lName = do
@@ -116,7 +121,7 @@ postPersonDeleteR fName lName = do
   ((res, form), enctype) <- runFormPost $ renderDivs $ areq boolField "Confirmed" (Just False)
   case res of
     FormSuccess True -> runDB $ delete pId >> delete (profileUser person)
-    FormFailure ts -> setMessage . toHtml $ foldr (\a b -> a `Text.append` ", " `Text.append` b) "" ts
+    FormFailure ts -> setMessage . toHtml $ foldr (\a b -> a <++> ", " <++> b) "" ts
     _ -> return ()
   redirect RedirectTemporary PeopleR
 
@@ -143,7 +148,7 @@ postAdminCreateR = do
                                    "Admin" "Administrator" "overseer of the site!" Nothing Nothing
                       redirect RedirectTemporary RootR
     FormFailure ts -> do
-                     setMessage . toHtml $ foldr (\a b -> a `Text.append` ", " `Text.append` b) "" ts
+                     setMessage . toHtml $ foldr (\a b -> a <++> ", " <++> b) "" ts
                      redirect RedirectTemporary AdminCreateR
     _ -> redirect RedirectTemporary AdminCreateR
 
@@ -167,7 +172,7 @@ postChangePasswdR = do
   ((res, form), enctype) <- runFormPost $ renderTable $ areq passwordField "New Password" Nothing
   case res of
     FormSuccess newPasswd -> runDB $ changePasswd uId newPasswd
-    FormFailure ts -> setMessage . toHtml $ foldr (\a b -> a `Text.append` ", " `Text.append` b) "" ts
+    FormFailure ts -> setMessage . toHtml $ foldr (\a b -> a <++> ", " <++> b) "" ts
     _ -> return ()
   redirect RedirectTemporary DashboardR
 
@@ -192,8 +197,10 @@ userFormlet user = renderDivs $ LclUser
 profileFormlet uid True p = renderTable $ Profile uid
                    <$> areq boolField "Admin Rights" (profileIsAdmin <$> p)
                    <*> areq boolField "Profile Visible" (profileIsVisible <$> p)
-                   <*> (aopt textField "Img1" (profileIconImage <$> p))
-                   <*> (aopt textField "Img2" (profileFullImage <$> p))
+                   -- <*> (aopt textField "Img1" (profileIconImage <$> p))
+                   -- <*> (aopt textField "Img2" (profileFullImage <$> p))
+                   <*> imageFieldOpt "Icon Image" (profileIconImage <$> p)
+                   <*> imageFieldOpt "Full Image" (profileFullImage <$> p)
                    <*> areq textField "First Name" (profileFirstName <$> p)
                    <*> areq textField "Last Name" (profileLastName <$> p)
                    <*> (unTextarea <$> areq textareaField "Description" (Textarea . profileAbout <$> p))
