@@ -1,0 +1,9 @@
+<h1>Projects @ Genspace
+$forall entry <- projects
+    <div>
+        <a href=@{ProjectR (projectName entry)}>#{projectName entry}
+    $if isAdmin
+        <div .inline>
+            <a href="TODO:edit"}>Edit
+            \    #
+            <a href="TODO:delete">Delete

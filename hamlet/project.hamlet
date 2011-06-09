@@ -1,0 +1,9 @@
+
+<h1>
+    <a href=@{ProjectsR} .headlink> Projects
+    \ > #{projectName project}
+<hr>
+$if canEdit
+    <div>
+        <a href=@{ProjectR (projectName project)}>Edit Project
+<p>#{projectDescription project}
