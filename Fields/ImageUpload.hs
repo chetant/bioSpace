@@ -24,21 +24,20 @@ import BioSpace
 
 imageFieldGeneric :: (MonadIO m, Monad m2) => 
                      (Maybe a -> FormResult a)
-                  -> (Maybe a -> FormResult a)
                   -> (Text -> a)
                   -> (Maybe a -> Maybe Text)
                   -> FilePath
                   -> FieldSettings Text 
                   -> Maybe a
                   -> AForm ([FieldView (GGWidget master m2 ())] -> [FieldView (GGWidget master m2 ())]) master (GGHandler sub master m) a
-imageFieldGeneric noRes badRes f g savedir FieldSettings {..} mval = formToAForm $ do
+imageFieldGeneric badRes f g savedir FieldSettings {..} mval = formToAForm $ do
   tell Multipart
   mf <- askFiles
   name <- maybe newFormIdent return fsName
   theId <- lift $ maybe (liftM pack newIdent) return fsId
   let mfi = maybe Nothing (lookup name) mf
       mimg = g mval
-  res <- flip (maybe (return $ noRes mval)) mfi 
+  res <- flip (maybe (return FormMissing)) mfi 
          (\fi -> do
             furl <- liftIO $ storeImage savedir fi
             return $ maybe (badRes mval) (FormSuccess . f . pack) furl
@@ -60,16 +59,15 @@ imageFieldGeneric noRes badRes f g savedir FieldSettings {..} mval = formToAForm
           , fvRequired = True
           })
 
--- imageFieldReq :: (MonadIO m, Monad m2) => 
---                  FieldSettings Text 
---               -> Maybe Text
---               -> AForm ([FieldView (GGWidget master m2 ())] -> [FieldView (GGWidget master m2 ())]) master (GGHandler sub master m) Text
--- imageFieldReq = imageFieldGeneric 
---                 (const FormMissing)
---                 (maybe (FormFailure ["Not a valid image"]) FormSuccess) 
---                 id 
---                 id 
---                 (staticdir </> "uploads")
+imageFieldReq :: (MonadIO m, Monad m2) => 
+                 FieldSettings Text 
+              -> Maybe Text
+              -> AForm ([FieldView (GGWidget master m2 ())] -> [FieldView (GGWidget master m2 ())]) master (GGHandler sub master m) Text
+imageFieldReq = imageFieldGeneric 
+                (maybe (FormFailure ["Not a valid image"]) FormSuccess) 
+                id 
+                id 
+                (staticdir </> "uploads")
 
 
 imageFieldOpt :: (MonadIO m, Monad m2) => 
@@ -77,7 +75,6 @@ imageFieldOpt :: (MonadIO m, Monad m2) =>
               -> Maybe (Maybe Text)
               -> AForm ([FieldView (GGWidget master m2 ())] -> [FieldView (GGWidget master m2 ())]) master (GGHandler sub master m) (Maybe Text)
 imageFieldOpt = imageFieldGeneric 
-                (const FormMissing)
                 (\img -> maybe (FormSuccess Nothing) FormSuccess (test img))
                 Just 
                 (maybe Nothing id) 
