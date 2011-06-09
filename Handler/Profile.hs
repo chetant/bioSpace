@@ -80,7 +80,7 @@ postPersonEditR fName lName = do
   canEdit <- checkAuth pId uId
   unless canEdit $ permissionDenied "Not Authorized"
   isAdmin <- checkAdmin uId
-  ((res, form), enctype) <- runFormPost $ profileFormlet (profileUser person) isAdmin Nothing
+  ((res, form), enctype) <- runFormPost $ profileFormlet (profileUser person) isAdmin (Just person)
   case res of
     FormSuccess profile -> do
              -- Only Admin can make profile.isAdmin = True
