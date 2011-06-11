@@ -2,8 +2,14 @@
 <h1>
     <a href=@{ProjectsR} .headlink> Projects
     \ > #{projectName project}
-<hr>
 $if canEdit
     <div>
         <a href=@{ProjectR (projectName project)}>Edit Project
-<p>#{projectDescription project}
+    <div>
+        <a href=@{UserPermissionsR (projectName project)}>Add/Change Collaborators
+<hr>
+<div>Collaborators: #
+    $forall p <- ownProfiles
+        $maybe p' <- p
+            #{profileFullName p'} #
+<div>#{projectDescription project}

@@ -1,9 +1,9 @@
 !!!
-<html
-    <head
+<html>
+    <head>
         <title>#{pageTitle pc}
         ^{pageHead pc}
-    <body
+    <body>
         <div .header>
              <a href=/>
                  <img .logo src=/static/img/GenspaceHeaderLogo.jpg alt=Logo>

@@ -31,10 +31,13 @@ library
                      Model
                      Settings
                      StaticFiles
+                     Handler.Commons
+                     Fields.ImageUpload
+                     Fields.Users
                      Handler.Root
                      Handler.Dashboard
                      Handler.Profile
-                     Fields.ImageUpload
+                     Handler.Project
 
 executable         bioSpace
     if flag(devel)

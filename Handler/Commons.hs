@@ -24,3 +24,6 @@ checkAuth pId uid = do
   (uId, user) <- runDB $ getBy404 $ UniqueProfile uid
   return $ (uId == pId) || (profileIsAdmin user)
 
+join ch []  = ""
+join ch [a] = a
+join ch xs  = foldl1 (\a b -> a <++> ch <++> b) xs

@@ -8,4 +8,6 @@ $maybe profile <- mprofile
 <div>
     <a href=@{ChangePasswdR}>Change Password
 <div>
+    <a href=@{ProjectCreateR}>Create Project
+<div>
     <a href=@{AuthR LogoutR}>Logout

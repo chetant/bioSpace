@@ -8,10 +8,15 @@
 /dashboard DashboardR GET
 /changepasswd ChangePasswdR GET POST
 
+/setup AdminCreateR GET POST
+
 /people PeopleR GET
 /person/#Text/#Text PersonR GET
-/person/edit/#Text/#Text PersonEditR GET POST
-/person/delete/#Text/#Text PersonDeleteR GET POST
+/create/person PersonCreateR GET POST
+/edit/person/#Text/#Text PersonEditR GET POST
+/delete/person/#Text/#Text PersonDeleteR GET POST
 
-/admin/user/create PersonCreateR GET POST
-/setup AdminCreateR GET POST
+/projects ProjectsR GET
+/project/#Text ProjectR GET
+/create/project ProjectCreateR GET POST
+/permission/project/#Text UserPermissionsR GET POST

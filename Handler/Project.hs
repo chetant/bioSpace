@@ -11,6 +11,7 @@ import Yesod.Auth.HashDB(UserId, addUser, changePasswd)
 import Yesod.Form.Nic
 
 import Fields.ImageUpload
+import Fields.Users
 import Handler.Commons
 import BioSpace
 
@@ -25,10 +26,9 @@ getProjectsR = do
 
 getProjectR :: Text -> Handler RepHtml
 getProjectR name = do
-  (prid, project) <- runDB $ getBy404 $ UniqueProject name
+  (prid, project, owners, ownProfiles) <- getProjectAndOwnersOr404 name
   mu <- maybeAuthId
-  authUids <- runDB $ (projectUserUser . snd <$>) <$> selectList [ProjectUserProjectEq prid] [] 0 0
-  let canEdit = maybe False (`elem` authUids) mu
+  let canEdit = maybe False (`elem` owners) mu
   defaultLayout $ do
     setTitle . toHtml $ "Genspace - Project - " <++> (projectName project)
     addWidget $(widgetFile "project")
@@ -53,9 +53,43 @@ postProjectCreateR = do
                              insert $ ProjectUser prid uId
                        redirect RedirectTemporary (ProjectR (projectName project))
     FormFailure ts -> do
-                      setMessage . toHtml $ foldr (\a b -> a <++> ", " <++> b) "" ts
+                      setMessage . toHtml $ join ", " ts
                       redirect RedirectTemporary ProjectCreateR
     _ -> redirect RedirectTemporary ProjectCreateR
+
+getUserPermissionsR :: Text -> Handler RepHtml
+getUserPermissionsR name = do
+  uId <- requireAuthId
+  (prid, project, owners, _) <- getProjectAndOwnersOr404 name
+  allps <- runDB (filter ((/= uId) . profileUser) . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)
+  let names = map (fromString . Text.unpack . profileFullName) allps
+      auths = map (Just . (`elem` owners) . profileUser) allps
+      allUids = map profileUser allps
+  ((res, form), enctype) <- runFormPost $ renderTable $ userAccessField allUids names auths
+  defaultLayout $ do
+    setTitle "Add Users"
+    addWidget $(widgetFile "getUsers")
+
+postUserPermissionsR :: Text -> Handler ()
+postUserPermissionsR name = do
+  uId <- requireAuthId
+  (prid, project, owners, _) <- getProjectAndOwnersOr404 name
+  allps <- runDB (filter ((/= uId) . profileUser) . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)
+  let names = map (fromString . Text.unpack . profileFullName) allps
+      auths = map (Just . (`elem` owners) . profileUser) allps
+      allUids = map profileUser allps
+  ((res, form), enctype) <- runFormPost $ renderTable $ userAccessField allUids names auths
+  case res of
+    FormSuccess auths -> do
+             runDB $ mapM (\(uid,t) -> if t 
+                                       then insert (ProjectUser prid uid) >> return ()
+                                       else deleteBy (UniqueProjectUser uid prid)
+                          ) auths
+             redirect RedirectTemporary (ProjectR name)
+    FormFailure ts -> do
+             setMessage . toHtml $ join ", " ts
+             redirect RedirectTemporary (ProjectR name)
+    _ -> redirect RedirectTemporary (ProjectR name)
 
 -- /edit/project/#Text ProjectEditR GET POST
 
@@ -164,22 +198,13 @@ projectFormlet project = renderDivs $ Project
                          <$> areq textField "Name" (projectName <$> project)
                          <*> areq textField "Description" (projectDescription <$> project)
 
--- profileFormlet uid True p = renderTable $ Profile uid
---                    <$> areq boolField "Admin Rights" (profileIsAdmin <$> p)
---                    <*> areq boolField "Profile Visible" (profileIsVisible <$> p)
---                    -- <*> (aopt textField "Img1" (profileIconImage <$> p))
---                    -- <*> (aopt textField "Img2" (profileFullImage <$> p))
---                    <*> imageFieldOpt "Icon Image" (profileIconImage <$> p)
---                    <*> imageFieldOpt "Full Image" (profileFullImage <$> p)
---                    <*> areq textField "First Name" (profileFirstName <$> p)
---                    <*> areq textField "Last Name" (profileLastName <$> p)
---                    <*> (unTextarea <$> areq textareaField "Description" (Textarea . profileAbout <$> p))
---                    <*> aopt emailField "Email" (profileEmail <$> p)
---                    <*> aopt urlField "Website" (profileWebsite <$> p)
+getProjectAndOwnersOr404 prjName = do
+    (prid, project) <- runDB $ getBy404 $ UniqueProject prjName
+    os <- runDB $ (map snd) <$> selectList [ProjectUserProjectEq prid] [] 0 0
+    let owners = map projectUserUser os
+    ownProfiles <- runDB $ mapM (((snd <$>)<$>) . getBy . UniqueProfile) owners
+    return (prid, project, owners, ownProfiles)
 
--- profileFormlet uid False p = renderTable $ Profile uid (maybe False id $ profileIsAdmin <$> p) (maybe True id $ profileIsVisible <$> p) Nothing Nothing
---                    <$> areq textField "First Name" (profileFirstName <$> p)
---                    <*> areq textField "Last Name" (profileLastName <$> p)
---                    <*> (unTextarea <$> areq textareaField "Description" (Textarea . profileAbout <$> p))
---                    <*> aopt emailField "Email" (profileEmail <$> p)
---                    <*> aopt urlField "Website" (profileWebsite <$> p)
+getOwners prid = runDB (map (projectUserUser . snd) <$> selectList [ProjectUserProjectEq prid] [] 0 0)
+
+profileFullName p = profileFirstName p <++> " " <++> profileLastName p

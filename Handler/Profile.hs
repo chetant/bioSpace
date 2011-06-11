@@ -11,13 +11,11 @@ import Yesod.Auth.HashDB(UserId, addUser, changePasswd)
 import Yesod.Form.Nic
 
 import Fields.ImageUpload
+import Handler.Commons
 import BioSpace
-
-(<++>) = Text.append
 
 getPeopleR :: Handler RepHtml
 getPeopleR = do
-  -- getBy $ UniqueProfile (fst mu)
   mu <- maybeAuthId
   people <- map snd <$> (runDB $ selectList [] [] 0 0)
   isAdmin <- maybe (return False) checkAdmin mu
@@ -213,16 +211,4 @@ profileFormlet uid False p = renderTable $ Profile uid (maybe False id $ profile
                    <*> (unTextarea <$> areq textareaField "Description" (Textarea . profileAbout <$> p))
                    <*> aopt emailField "Email" (profileEmail <$> p)
                    <*> aopt urlField "Website" (profileWebsite <$> p)
-
-mangleEmail :: Text -> Text
-mangleEmail emailAddx = user <++> " < at > " <++> (Text.tail domain)
-    where (user, domain) = Text.breakOn "@" emailAddx
-
-checkAdmin uid = do
-  (uId, user) <- runDB $ getBy404 $ UniqueProfile uid
-  return $ profileIsAdmin user
-
-checkAuth pId uid = do
-  (uId, user) <- runDB $ getBy404 $ UniqueProfile uid
-  return $ (uId == pId) || (profileIsAdmin user)
 
