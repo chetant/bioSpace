@@ -27,3 +27,5 @@ checkAuth pId uid = do
 join ch []  = ""
 join ch [a] = a
 join ch xs  = foldl1 (\a b -> a <++> ch <++> b) xs
+
+profileFullName p = profileFirstName p <++> " " <++> profileLastName p

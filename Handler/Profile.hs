@@ -39,7 +39,11 @@ getPersonCreateR = do
   ((res, form), enctype) <- runFormPost $ userFormlet Nothing
   defaultLayout $ do
     setTitle "Create New User"
-    addWidget $(widgetFile "createUser")
+    let objName :: Text
+        objName = "User"
+        actionName :: Text
+        actionName = "Create"
+    addWidget $(widgetFile "createEdit")
 
 postPersonCreateR :: Handler ()
 postPersonCreateR = do
@@ -69,7 +73,11 @@ getPersonEditR fName lName = do
   ((res, form), enctype) <- runFormPost $ profileFormlet uId isAdmin (Just person)
   defaultLayout $ do
     setTitle $ toHtml ("Edit Profile - " <++> fName <++> " " <++> lName)
-    addWidget $(widgetFile "editProfile")
+    let objName :: Text
+        objName = "Profile" <++> " - " <++> profileFullName person
+        actionName :: Text
+        actionName = "Update"
+    addWidget $(widgetFile "createEdit")
 
 postPersonEditR :: Text -> Text -> Handler RepHtml
 postPersonEditR fName lName = do
@@ -131,7 +139,11 @@ getAdminCreateR = do
   ((res, form), enctype) <- runFormPost $ userFormlet Nothing
   defaultLayout $ do
     setTitle "Create Admin"
-    addWidget $(widgetFile "createUser")
+    let objName :: Text
+        objName = "Admin"
+        actionName :: Text
+        actionName = "Create"
+    addWidget $(widgetFile "createEdit")
 
 postAdminCreateR :: Handler ()
 postAdminCreateR = do
@@ -188,15 +200,13 @@ toMaybe a
     | a == fromString "" = Nothing
     | otherwise = Just a
 
-userFormlet user = renderDivs $ LclUser
+userFormlet user = renderTable $ LclUser
                    <$> areq textField "Username" (username <$> user)
                    <*> areq passwordField "Password" (passwd <$> user)
 
 profileFormlet uid True p = renderTable $ Profile uid
                    <$> areq boolField "Admin Rights" (profileIsAdmin <$> p)
                    <*> areq boolField "Profile Visible" (profileIsVisible <$> p)
-                   -- <*> (aopt textField "Img1" (profileIconImage <$> p))
-                   -- <*> (aopt textField "Img2" (profileFullImage <$> p))
                    <*> imageFieldOpt "Icon Image" (profileIconImage <$> p)
                    <*> imageFieldOpt "Full Image" (profileFullImage <$> p)
                    <*> areq textField "First Name" (profileFirstName <$> p)

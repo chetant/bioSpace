@@ -1,6 +1,0 @@
-<h1> Edit Profile - #{fName} #{lName}
-<form enctype="#{enctype}" method=POST>
-    <table>
-        ^{form}
-        <td>
-            <input type="submit" value="Submit">

@@ -4,7 +4,7 @@
     \ > #{projectName project}
 $if canEdit
     <div>
-        <a href=@{ProjectR (projectName project)}>Edit Project
+        <a href=@{ProjectEditR (projectName project)}>Edit Project
     <div>
         <a href=@{UserPermissionsR (projectName project)}>Add/Change Collaborators
 <hr>

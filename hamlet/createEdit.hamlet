@@ -1,4 +1,6 @@
-<h1> Create User
+<h1> Create #{objName}
 <form enctype="#{enctype}" method=POST>
-      ^{form}
-      <input type="submit" value="Create">
+    <table>
+        ^{form}
+        <td>
+            <input type="submit" value=#{actionName}>

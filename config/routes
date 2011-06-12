@@ -20,3 +20,4 @@
 /project/#Text ProjectR GET
 /create/project ProjectCreateR GET POST
 /permission/project/#Text UserPermissionsR GET POST
+/edit/project/#Text ProjectEditR GET POST
