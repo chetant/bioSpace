@@ -28,7 +28,8 @@ getProjectR :: Text -> Handler RepHtml
 getProjectR name = do
   (prid, project, owners, ownProfiles) <- getProjectAndOwnersOr404 name
   mu <- maybeAuthId
-  let canEdit = maybe False (`elem` owners) mu
+  isAdmin <- maybe (return False) return (checkAdmin <$> mu)
+  let canEdit = maybe isAdmin (`elem` owners) mu
   defaultLayout $ do
     setTitle . toHtml $ "Genspace - Project - " <++> (projectName project)
     addWidget $(widgetFile "project")
@@ -99,7 +100,9 @@ getProjectEditR :: Text -> Handler RepHtml
 getProjectEditR name = do
   uId <- requireAuthId
   (prid, project, owners, _) <- getProjectAndOwnersOr404 name
-  unless (uId `elem` owners) $ permissionDenied "Not Authorized"
+  isAdmin <- checkAdmin uId
+  let canEdit = isAdmin  || (uId `elem` owners)
+  unless canEdit $ permissionDenied "Not Authorized"
   ((res, form), enctype) <- runFormPost $ projectFormlet $ Just project
   defaultLayout $ do
     setTitle "Edit Project"
@@ -113,7 +116,9 @@ postProjectEditR :: Text -> Handler ()
 postProjectEditR name = do
   uId <- requireAuthId
   (prid, project, owners, _) <- getProjectAndOwnersOr404 name
-  unless (uId `elem` owners) $ permissionDenied "Not Authorized"
+  isAdmin <- checkAdmin uId
+  let canEdit = isAdmin  || (uId `elem` owners)
+  unless canEdit $ permissionDenied "Not Authorized"
   ((res, form), enctype) <- runFormPost $ projectFormlet $ Just project
   case res of
     FormSuccess project -> do
