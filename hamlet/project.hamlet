@@ -7,6 +7,8 @@ $if canEdit
         <a href=@{ProjectEditR (projectName project)}>Edit Project
     <div>
         <a href=@{UserPermissionsR (projectName project)}>Add/Change Collaborators
+    <div>
+        <a href=@{ProjectDeleteR (projectName project)}>Delete Project
 <hr>
 <div>Collaborators: #
     $forall p <- ownProfiles

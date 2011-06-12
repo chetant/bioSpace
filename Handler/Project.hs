@@ -28,7 +28,7 @@ getProjectR :: Text -> Handler RepHtml
 getProjectR name = do
   (prid, project, owners, ownProfiles) <- getProjectAndOwnersOr404 name
   mu <- maybeAuthId
-  isAdmin <- maybe (return False) return (checkAdmin <$> mu)
+  isAdmin <- maybe (return False) checkAdmin mu
   let canEdit = maybe isAdmin (`elem` owners) mu
   defaultLayout $ do
     setTitle . toHtml $ "Genspace - Project - " <++> (projectName project)
@@ -128,6 +128,42 @@ postProjectEditR name = do
                       setMessage . toHtml $ join ", " ts
                       redirect RedirectTemporary (ProjectEditR name)
     _ -> redirect RedirectTemporary (ProjectEditR name)
+
+getProjectDeleteR :: Text -> Handler RepHtml
+getProjectDeleteR name = do
+  uId <- requireAuthId
+  (prid, project, owners, _) <- getProjectAndOwnersOr404 name
+  isAdmin <- checkAdmin uId
+  let canEdit = isAdmin  || (uId `elem` owners)
+  unless canEdit $ permissionDenied "Not Authorized"
+  ((res, form), enctype) <- runFormPost $ renderDivs $ areq boolField "Are You Sure?" (Just False)
+  defaultLayout $ do
+    setTitle "Project Delete Confirmation"
+    addWidget $ [hamlet|
+<h1> Deletion Confirmation - Project #{name}
+<form enctype="#{enctype}" method=POST>
+    ^{form}
+    <input type="submit" value="Submit">
+|]
+
+postProjectDeleteR :: Text -> Handler RepHtml
+postProjectDeleteR name = do
+  uId <- requireAuthId
+  (prid, project, owners, _) <- getProjectAndOwnersOr404 name
+  isAdmin <- checkAdmin uId
+  let canEdit = isAdmin  || (uId `elem` owners)
+  unless canEdit $ permissionDenied "Not Authorized"
+  ((res, form), enctype) <- runFormPost $ renderDivs $ areq boolField "Confirmed" (Just False)
+  case res of
+    FormSuccess True -> runDB $ do
+                            -- delete all references to prid
+                            userPerms <- map fst <$> selectList [ProjectUserProjectEq prid] [] 0 0
+                            mapM_ delete userPerms
+                            -- delete project itself
+                            delete prid
+    FormFailure ts -> setMessage . toHtml $ foldr (\a b -> a <++> ", " <++> b) "" ts
+    _ -> return ()
+  redirect RedirectTemporary (ProjectR name)
 
 ---------------------------
 ----- Helper functions ----
