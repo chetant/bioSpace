@@ -1,0 +1,5 @@
+<h1> #{objName}
+<form enctype="#{enctype}" method=POST>
+    ^{form}
+    <div>
+        <input type="submit" value=#{actionName}>

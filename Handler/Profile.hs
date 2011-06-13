@@ -5,6 +5,8 @@ import Control.Applicative((<$>),(<*>))
 import Control.Monad(when, unless)
 import Data.Text(Text)
 import qualified Data.Text as Text
+import Data.Text.Lazy(toStrict)
+import Text.Hamlet(renderHtmlText, preEscapedText)
 import Data.String
 import Yesod.Auth
 import Yesod.Auth.HashDB(UserId, addUser, changePasswd)
@@ -29,6 +31,7 @@ getPersonR fName lName = do
   canEdit <- maybe (return False) (checkAuth pId) mu
   defaultLayout $ do
     setTitle "Genspace - People"
+    let description = addHtml (preEscapedText . profileAbout $ person)
     addWidget $(widgetFile "person")
 
 getPersonCreateR :: Handler RepHtml
@@ -40,7 +43,7 @@ getPersonCreateR = do
   defaultLayout $ do
     setTitle "Create New User"
     let objName :: Text
-        objName = "User"
+        objName = "Create User"
         actionName :: Text
         actionName = "Create"
     addWidget $(widgetFile "createEdit")
@@ -74,7 +77,7 @@ getPersonEditR fName lName = do
   defaultLayout $ do
     setTitle $ toHtml ("Edit Profile - " <++> fName <++> " " <++> lName)
     let objName :: Text
-        objName = "Profile" <++> " - " <++> profileFullName person
+        objName = "Edit Profile" <++> " - " <++> profileFullName person
         actionName :: Text
         actionName = "Update"
     addWidget $(widgetFile "createEdit")
@@ -140,7 +143,7 @@ getAdminCreateR = do
   defaultLayout $ do
     setTitle "Create Admin"
     let objName :: Text
-        objName = "Admin"
+        objName = "Create Admin"
         actionName :: Text
         actionName = "Create"
     addWidget $(widgetFile "createEdit")
@@ -211,14 +214,16 @@ profileFormlet uid True p = renderTable $ Profile uid
                    <*> imageFieldOpt "Full Image" (profileFullImage <$> p)
                    <*> areq textField "First Name" (profileFirstName <$> p)
                    <*> areq textField "Last Name" (profileLastName <$> p)
-                   <*> (unTextarea <$> areq textareaField "Description" (Textarea . profileAbout <$> p))
+--                   <*> (unTextarea <$> areq textareaField "Description" (Textarea . profileAbout <$> p))
+                   <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic "Description" (preEscapedText . profileAbout <$> p)))
                    <*> aopt emailField "Email" (profileEmail <$> p)
                    <*> aopt urlField "Website" (profileWebsite <$> p)
 
 profileFormlet uid False p = renderTable $ Profile uid (maybe False id $ profileIsAdmin <$> p) (maybe True id $ profileIsVisible <$> p) Nothing Nothing
                    <$> areq textField "First Name" (profileFirstName <$> p)
                    <*> areq textField "Last Name" (profileLastName <$> p)
-                   <*> (unTextarea <$> areq textareaField "Description" (Textarea . profileAbout <$> p))
+                   -- <*> (unTextarea <$> areq textareaField "Description" (Textarea . profileAbout <$> p))
+                   <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic "Description" (preEscapedText . profileAbout <$> p)))
                    <*> aopt emailField "Email" (profileEmail <$> p)
                    <*> aopt urlField "Website" (profileWebsite <$> p)
 

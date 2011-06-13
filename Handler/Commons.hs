@@ -7,6 +7,7 @@ import Data.Text(Text)
 import qualified Data.Text as Text
 import Data.String
 import Yesod.Auth
+import Yesod.Form.Nic
 
 import BioSpace
 
@@ -29,3 +30,10 @@ join ch [a] = a
 join ch xs  = foldl1 (\a b -> a <++> ch <++> b) xs
 
 profileFullName p = profileFirstName p <++> " " <++> profileLastName p
+
+instance YesodNic BioSpace where
+    urlNicEdit _ = Right "/static/js/nicEdit.js"
+
+htmlFieldNic :: Field (GWidget sub BioSpace ()) FormMessage Html
+htmlFieldNic = nicHtmlField
+

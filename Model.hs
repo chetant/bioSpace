@@ -3,7 +3,7 @@ module Model where
 
 import Yesod
 import Yesod.Auth.HashDB
-import Data.Text (Text)
+import Data.Text (Text,unpack)
 import Data.Time
 
 -- You can define all of your database entities in the entities file.

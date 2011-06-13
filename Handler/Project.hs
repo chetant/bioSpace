@@ -5,10 +5,11 @@ import Control.Applicative((<$>),(<*>))
 import Control.Monad(when, unless)
 import Data.Text(Text)
 import qualified Data.Text as Text
+import Data.Text.Lazy(toStrict)
+import Text.Hamlet(renderHtmlText, preEscapedText)
 import Data.String
 import Yesod.Auth
 import Yesod.Auth.HashDB(UserId, addUser, changePasswd)
-import Yesod.Form.Nic
 
 import Fields.ImageUpload
 import Fields.Users
@@ -32,6 +33,7 @@ getProjectR name = do
   let canEdit = maybe isAdmin (`elem` owners) mu
   defaultLayout $ do
     setTitle . toHtml $ "Genspace - Project - " <++> (projectName project)
+    let description = addHtml (preEscapedText . projectDescription $ project)
     addWidget $(widgetFile "project")
 
 getProjectCreateR :: Handler RepHtml
@@ -41,7 +43,7 @@ getProjectCreateR = do
   defaultLayout $ do
     setTitle "Create New Project"
     let objName :: Text
-        objName = "Project"
+        objName = "Create Project"
         actionName :: Text
         actionName = "Create"
     addWidget $(widgetFile "createEdit")
@@ -107,10 +109,10 @@ getProjectEditR name = do
   defaultLayout $ do
     setTitle "Edit Project"
     let objName :: Text
-        objName = "Project"
+        objName = "Edit Project"
         actionName :: Text
         actionName = "Update"
-    addWidget $(widgetFile "createEdit")
+    addWidget $(widgetFile "createEdit_divs")
 
 postProjectEditR :: Text -> Handler ()
 postProjectEditR name = do
@@ -163,15 +165,17 @@ postProjectDeleteR name = do
                             delete prid
     FormFailure ts -> setMessage . toHtml $ foldr (\a b -> a <++> ", " <++> b) "" ts
     _ -> return ()
-  redirect RedirectTemporary (ProjectR name)
+  redirect RedirectTemporary ProjectsR
 
 ---------------------------
 ----- Helper functions ----
 ---------------------------
 
-projectFormlet project = renderTable $ Project
+projectFormlet project = renderDivs $ Project
                          <$> areq textField "Name" (projectName <$> project)
-                         <*> areq textField "Description" (projectDescription <$> project)
+                         <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic descFS (preEscapedText . projectDescription <$> project)))
+    where descFS :: FieldSettings Text
+          descFS = FieldSettings "Description" Nothing (Just "description") (Just "description")
 
 getProjectAndOwnersOr404 prjName = do
     (prid, project) <- runDB $ getBy404 $ UniqueProject prjName

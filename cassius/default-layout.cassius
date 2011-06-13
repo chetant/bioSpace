@@ -8,6 +8,11 @@ div
         margin: 20px
     .inline
         display: inline
+    .editing
+        background-color: #eee
+        border: 1px solid #000
+    #description
+        width: 100%
 ul
     .mainbar
         list-style-type: none

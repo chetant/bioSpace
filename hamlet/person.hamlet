@@ -11,7 +11,7 @@ $maybe photoURL <- profileFullImage person
 $nothing
     <img .profilepic src=/static/img/NoPhoto.png>
 <h2> #{profileFirstName person} #{profileLastName person}
-<p>#{profileAbout person}
+<div>^{description}
 <p .email>
     $maybe email <- profileEmail person
         Email: #{mangleEmail email}
