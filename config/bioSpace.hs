@@ -1,10 +1,12 @@
 {-# LANGUAGE CPP #-}
 #if PRODUCTION
 import Controller (withBioSpace)
-import Network.Wai.Handler.Warp (run)
+-- import Network.Wai.Handler.Warp (run)
+import Network.Wai.Handler.FastCGI (run)
 
 main :: IO ()
-main = withBioSpace $ run 3000
+-- main = withBioSpace $ run 3000
+main = withBioSpace run
 #else
 import Controller (withBioSpace)
 import System.IO (hPutStrLn, stderr)
