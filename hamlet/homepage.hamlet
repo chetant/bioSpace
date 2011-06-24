@@ -1,7 +1,7 @@
 <h1>Hello
 $maybe u <- mu
     <p
-        You are logged in as #{show u}. #
+        You are logged in. #
         <a href=@{AuthR LogoutR}>Logout
         .
 $nothing
