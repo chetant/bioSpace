@@ -35,6 +35,7 @@ import qualified Data.Text.Lazy.Encoding
 import Text.Jasmine (minifym)
 import qualified Data.Text as T
 import Data.Text(Text)
+import Control.Applicative((<$>))
 
 -- | The site argument for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -84,6 +85,8 @@ instance Yesod BioSpace where
         pc <- widgetToPageContent $ do
             widget
             addCassius $(Settings.cassiusFile "default-layout")
+        muid <- maybeAuthId
+        mprofile <- maybe (return Nothing) (runDB . ((snd <$>) <$>) . getBy . UniqueProfile) muid
         hamletToRepHtml $(Settings.hamletFile "default-layout")
 
     -- This is done to provide an optimization for serving static files from

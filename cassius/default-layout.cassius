@@ -11,6 +11,8 @@ div
     .editing
         background-color: #eee
         border: 1px solid #000
+    .login
+        text-align: right
     #description
         width: 100%
 ul
