@@ -20,6 +20,15 @@ getPeopleR :: Handler RepHtml
 getPeopleR = do
   mu <- maybeAuthId
   people <- map snd <$> (runDB $ selectList [] [] 0 0)
+  let visPeople = filter profileIsVisible people
+      numPeople = length visPeople
+      numCols = 4 -- ((min 4) . round . sqrt . fromIntegral) numPeople
+      brkRows _ [] as = reverse as
+      brkRows i (x:xs) (a:as)
+          | i `mod` numCols == 0 = brkRows (i+1) xs ([x]:(a:as))
+          | otherwise            = brkRows (i+1) xs ((x:a):as)
+      brkRows i (x:xs) [] = brkRows (i+1) xs [[x]]
+      pplMtx = brkRows 0 visPeople []
   isAdmin <- maybe (return False) checkAdmin mu
   defaultLayout $ do
                setTitle "Genspace - People"

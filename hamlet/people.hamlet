@@ -1,17 +1,33 @@
-<h1>Team Genspace
 $if isAdmin
     <a href=@{PersonCreateR}>Create New User
-$forall entry <- people
-    <p>
-    $if (profileIsVisible entry)
-        <div>
-            <a href=@{PersonR (profileFirstName entry) (profileLastName entry)} .normallink> #{profileFirstName entry} #{profileLastName entry}
-    $else
-        $if isAdmin
+<h1>Team Genspace
+<table>
+ <tr>
+  <td>
+    <table style="margin:auto">
+        $forall row <- pplMtx
+            <tr>
+            $forall col <- row
+                <td>
+                    <a href=@{PersonR (profileFirstName col) (profileLastName col)} .normallink>
+                        $maybe mugshotURL <- profileIconImage col
+                            <img .profilepic src=/static/uploads/#{mugshotURL}>
+                        $nothing
+                            <img .profilepic src=/static/img/NoIcon.png>
+                        <br>
+                        #{profileFirstName col} #{profileLastName col}
+  <td style="width:15%;text-align:right;vertical-align:top">
+    $forall entry <- people
+        <p>
+        $if (profileIsVisible entry)
             <div>
-                <a .invisible href=@{PersonR (profileFirstName entry) (profileLastName entry)} .normallink> Invisible: #{profileFirstName entry} #{profileLastName entry}
-    $if isAdmin
-        <div .inline>
-            <a href=@{PersonEditR (profileFirstName entry) (profileLastName entry)}>Edit
-            \    #
-            <a href=@{PersonDeleteR (profileFirstName entry) (profileLastName entry)}>Delete
+                <a href=@{PersonR (profileFirstName entry) (profileLastName entry)} .normallink> #{profileFirstName entry} #{profileLastName entry}
+        $else
+            $if isAdmin
+                <div>
+                    <a .invisible href=@{PersonR (profileFirstName entry) (profileLastName entry)} .normallink> Invisible: #{profileFirstName entry} #{profileLastName entry}
+        $if isAdmin
+            <div .inline>
+                <a href=@{PersonEditR (profileFirstName entry) (profileLastName entry)}>Edit
+                \    #
+                <a href=@{PersonDeleteR (profileFirstName entry) (profileLastName entry)}>Delete
