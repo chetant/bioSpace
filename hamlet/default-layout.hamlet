@@ -2,42 +2,51 @@
 <html>
     <head>
         <title>#{pageTitle pc}
+        <script src=@{StaticR js_jquery_min_js}>
         ^{pageHead pc}
     <body>
-        <div .header>
-             <a href=/>
-                 <img .logo src=/static/img/GenspaceHeaderLogo.jpg alt=Logo>
-             <ul .mainbar>
-                 <li .entry>
-                      <a .entry href=/about >About
-                 <li .separator>|
-                 <li .entry>
-                      <a .entry href=/people >People
-                 <li .separator>|
-                 <li .entry>
-                      <a .entry href=/projects >Projects
-                 <li .separator>|
-                 <li .entry>
-                      <a .entry href=/events >Events
-                 <li .separator>|
-                 <li .entry>
-                      <a .entry href=/contact >Contact Us
-                 <li .separator>|
-                 <li .entry>
-                      <a .entry href=/blog >Blog
-        <div .header>
-            $maybe profile <- mprofile
-                <div .login>
-                    Welcome back, #{profileFirstName profile}
-                    \ | #
-                    <a href=@{DashboardR}>Dashboard
-                    \ | #
-                    <a href=@{AuthR LogoutR}>Logout
-            $nothing
-                <div .login>
-                    <a href=@{AuthR LoginR}>Login now
-            <hr>
-        $maybe msg <- mmsg
-            <div #message>#{msg}
-        <div .body>
-            ^{pageBody pc}
+        <div .content>
+            <div .header>
+                 <a href=/>
+                     <img .logo src=/static/img/GenspaceHeaderLogo.jpg alt=Logo>
+                 <div .headerlinks>
+                    <div .login>
+                      <form method="GET" action="http://www.google.com/search">
+                          <input type="hidden" name="hl" value="en">
+                          <input type="hidden" name="as_sitesearch" value="newsite.genspace.org">
+                          <input type="text" size="20" name="as_q" value="Search..." onfocus="if(this.value=='Search...')this.value=''" onblur="if(this.value=='')this.value='Search...'">
+                          <input type="submit" value="Go">
+                    <div>
+                      <ul .mainbar>
+                          <li .entry>
+                               <a .entry href=/about >About
+                          <li .separator>|
+                          <li .entry>
+                               <a .entry href=/people >People
+                          <li .separator>|
+                          <li .entry>
+                               <a .entry href=/projects >Projects
+                          <li .separator>|
+                          <li .entry>
+                               <a .entry href=/events >Events
+                          <li .separator>|
+                          <li .entry>
+                               <a .entry href=/contact >Contact Us
+                          <li .separator>|
+                          <li .entry>
+                               <a .entry href=/blog >Blog
+                    <div .login>
+                        $maybe profile <- mprofile
+                            Welcome back, #{profileFirstName profile}
+                            \ | #
+                            <a href=@{DashboardR} .normallink>Dashboard
+                            \ | #
+                            <a href=@{AuthR LogoutR} .normallink>Logout
+                        $nothing
+                            <a href=@{AuthR LoginR} .normallink>Login
+            <div .header>
+                <hr>
+            $maybe msg <- mmsg
+                <div #message>#{msg}
+            <div .body>
+                ^{pageBody pc}

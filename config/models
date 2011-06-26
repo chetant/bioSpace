@@ -18,6 +18,7 @@ Tag
 
 Project
     name Text Eq
+    fullImage Text Update
     description Text
     UniqueProject name
 ProjectUser

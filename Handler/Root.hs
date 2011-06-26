@@ -1,6 +1,8 @@
 {-# LANGUAGE TemplateHaskell, QuasiQuotes, OverloadedStrings #-}
 module Handler.Root where
 
+import Control.Applicative((<$>))
+import StaticFiles
 import BioSpace
 
 -- This is a handler function for the GET request method on the RootR
@@ -12,14 +14,10 @@ import BioSpace
 -- inclined, or create a single monolithic file.
 getRootR :: Handler RepHtml
 getRootR = do
-    mu <- maybeAuth
-    defaultLayout $ do
-        h2id <- lift newIdent
-        setTitle "Welcome to Genspace"
-        addWidget $(widgetFile "homepage")
-
--- getInstallR :: Handler RepHtml
--- getInstallR = undefined
---   defaultLayout $ do
---                 runDb
---                 setTitle "bioSpace Installation"
+  projects <- map snd <$> (runDB $ selectList [] [] 0 0)
+  defaultLayout $ do
+             h2id <- lift newIdent
+             setTitle "Welcome to Genspace"
+             addScript $ StaticR js_jquery_cycle_all_min_js
+             addJulius $(juliusFile "homepage")
+             addWidget $(widgetFile "homepage")

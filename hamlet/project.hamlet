@@ -14,4 +14,6 @@ $if canEdit
             #{profileFullName p'} #
     $if canEdit
         <a href=@{UserPermissionsR (projectName project)}>Add/Change Collaborators
+<div>
+    <img .profilepic src=/static/uploads/#{projectFullImage project}>
 <div>^{description}

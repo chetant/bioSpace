@@ -1,15 +1,8 @@
-<h1>Hello
-$maybe u <- mu
-    <p
-        You are logged in. #
-        <a href=@{AuthR LogoutR}>Logout
-        .
-$nothing
-    <p
-        You are not logged in. #
-        <a href=@{AuthR LoginR}>Login now
-        .
-
+<div .cycle>
+  $forall project <- projects
+    <a href=@{ProjectR (projectName project)} .normallink>
+        <div .slide style="background-image: url(/static/uploads/#{projectFullImage project});background-repeat: no-repeat;width: 800px;height: 400px">
+            <h2 .projectslide>#{projectName project}
 <hr>
 <table cellpadding="15">
   <tr>

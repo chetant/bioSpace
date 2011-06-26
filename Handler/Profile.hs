@@ -219,8 +219,10 @@ profileFormlet uid True p = renderTable $ Profile uid
                    <*> aopt emailField "Email" (profileEmail <$> p)
                    <*> aopt urlField "Website" (profileWebsite <$> p)
 
-profileFormlet uid False p = renderTable $ Profile uid (maybe False id $ profileIsAdmin <$> p) (maybe True id $ profileIsVisible <$> p) Nothing Nothing
-                   <$> areq textField "First Name" (profileFirstName <$> p)
+profileFormlet uid False p = renderTable $ Profile uid (maybe False id $ profileIsAdmin <$> p) (maybe True id $ profileIsVisible <$> p)
+                   <$> imageFieldOpt "Icon Image" (profileIconImage <$> p)
+                   <*> imageFieldOpt "Full Image" (profileFullImage <$> p)
+                   <*> areq textField "First Name" (profileFirstName <$> p)
                    <*> areq textField "Last Name" (profileLastName <$> p)
                    -- <*> (unTextarea <$> areq textareaField "Description" (Textarea . profileAbout <$> p))
                    <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic "Description" (preEscapedText . profileAbout <$> p)))
