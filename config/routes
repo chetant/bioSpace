@@ -19,6 +19,12 @@
 /projects ProjectsR GET
 /project/#Text ProjectR GET
 /create/project ProjectCreateR GET POST
-/permission/project/#Text UserPermissionsR GET POST
+/permission/project/#Text ProjectUserPermissionsR GET POST
 /edit/project/#Text ProjectEditR GET POST
 /delete/project/#Text ProjectDeleteR GET POST
+
+/page/#Text PageR GET
+/create/page PageCreateR GET POST
+/permission/page/#Text PageUserPermissionsR GET POST
+/edit/page/#Text PageEditR GET POST
+/delete/page/#Text PageDeleteR GET POST

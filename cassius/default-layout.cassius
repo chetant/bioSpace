@@ -1,9 +1,13 @@
 body
+    margin-top:0px
     font-family: "Arial", Arial, sans-serif
 
 div
     .header
-        margin: 20px
+        margin-top: 0px
+        margin-left: 20px
+        margin-right: 20px
+        margin-bottom: 20px
     .body
         margin: 20px
     .inline
@@ -22,17 +26,21 @@ div
         border: 1px solid #000
     .content
         width: 980px
-        padding: 10x 0 10px 0
         text-align: left
         display: block
         margin: auto
+        margin-top: 0px
     .cycle
         width: 500px
         margin: 20px auto
     .slide
         position: relative
         width: 100%
+    .topbutton
+        display:inline-block
     #description
+        width: 100%
+    #pagecontents
         width: 100%
 table
     .inline

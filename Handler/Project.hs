@@ -63,8 +63,8 @@ postProjectCreateR = do
                       redirect RedirectTemporary ProjectCreateR
     _ -> redirect RedirectTemporary ProjectCreateR
 
-getUserPermissionsR :: Text -> Handler RepHtml
-getUserPermissionsR name = do
+getProjectUserPermissionsR :: Text -> Handler RepHtml
+getProjectUserPermissionsR name = do
   uId <- requireAuthId
   (prid, project, owners, _) <- getProjectAndOwnersOr404 name
   allps <- runDB (filter ((/= uId) . profileUser) . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)
@@ -74,10 +74,11 @@ getUserPermissionsR name = do
   ((res, form), enctype) <- runFormPost $ renderTable $ userAccessField allUids names auths
   defaultLayout $ do
     setTitle "Add Users"
+    let heading = "Project Collaborators for " <++> projectName project
     addWidget $(widgetFile "getUsers")
 
-postUserPermissionsR :: Text -> Handler ()
-postUserPermissionsR name = do
+postProjectUserPermissionsR :: Text -> Handler ()
+postProjectUserPermissionsR name = do
   uId <- requireAuthId
   (prid, project, owners, _) <- getProjectAndOwnersOr404 name
   allps <- runDB (filter ((/= uId) . profileUser) . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)

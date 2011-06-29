@@ -1,0 +1,16 @@
+
+<h1> #{wikiPageName page}
+$if canEdit
+    <div>
+        <a href=@{PageEditR (wikiPageName page)}>Edit Page
+    <div>
+        <a href=@{PageDeleteR (wikiPageName page)}>Delete Page
+<hr>
+$if canEdit
+    <div>Collaborators: #
+        $forall p <- ownProfiles
+            $maybe p' <- p
+                #{profileFullName p'} #
+        $if canEdit
+            <a href=@{PageUserPermissionsR (wikiPageName page)}>Add/Change Collaborators
+<div>^{content}

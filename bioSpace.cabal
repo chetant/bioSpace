@@ -38,6 +38,7 @@ library
                      Handler.Dashboard
                      Handler.Profile
                      Handler.Project
+                     Handler.Wiki
 
 executable         bioSpace
     if flag(devel)
