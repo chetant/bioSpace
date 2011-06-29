@@ -40,7 +40,7 @@
                                <a .entry href=/page/Contact_Us >Contact Us
                           <li .separator>|
                           <li .entry>
-                               <a .entry href=/blog >Blog
+                               <a .entry href=http://genspace.org/blog >Blog
                     <div .login>
                         $maybe profile <- mprofile
                             Welcome back, #{profileFirstName profile}
