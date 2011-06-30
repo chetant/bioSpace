@@ -10,7 +10,7 @@ import Control.Monad.Trans.RWS(tell)
 import Control.Applicative((<$>))
 import Control.Exception(IOException, try, throw, ioError)
 import System.FilePath(takeExtension, (</>), splitFileName)
-import System.IO(openTempFile, hClose)
+import System.IO(openBinaryTempFileWithDefaultPermissions, hClose)
 import Data.Text(Text, pack, unpack)
 import Graphics.GD
 import Text.Hamlet.NonPoly (html)
@@ -98,7 +98,7 @@ storeImage uploadDir fi = do
          Just
          <$> (try $ do
                 img <- loadImg (ext fname) imgdata
-                (filename, hFile) <- openTempFile uploadDir (unpack fname)
+                (filename, hFile) <- openBinaryTempFileWithDefaultPermissions uploadDir (unpack fname)
                 L.hPut hFile imgdata
                 hClose hFile
                 return (snd . splitFileName $ filename))

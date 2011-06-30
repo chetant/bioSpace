@@ -16,7 +16,7 @@ $if isAdmin
                             <img .profilepic src=/static/img/NoIcon.png>
                         <br>
                         #{profileFirstName col} #{profileLastName col}
-  <td style="width:15%;text-align:right;vertical-align:top">
+  <td style="width:15%;text-align:right;vertical-align:text-top">
     $forall entry <- people
         <p>
         $if (profileIsVisible entry)
