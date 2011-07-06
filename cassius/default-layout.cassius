@@ -77,6 +77,14 @@ img
     .projectslide
         position: relative
         width: 100%
+    .profilepic
+        position: relative
+        width: auto
+        height: 300px
+    .iconpic
+        position: relative
+        width: 150px
+        height: 150px
 a
     :hover
         color: #96a97e
