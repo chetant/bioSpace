@@ -42,15 +42,20 @@ BlogEntryAuthor
 Event
     date Day Eq Desc
     time TimeOfDay Eq Desc
+    isPublic Bool Eq
     title Text
     description Text
-    price Int
+    price Double Maybe
     organizer UserId Eq
     UniqueEvent date time title
 EventTag
     event EventId Eq
     tag TagId Eq
     UniqueEventTag event tag
+EventUser
+    event EventId Eq
+    user UserId Eq
+    UniqueEventUser user event
 
 WikiPage
     name Text Eq

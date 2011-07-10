@@ -8,7 +8,9 @@ import qualified Data.Text as Text
 import Data.String
 import Yesod.Auth
 import Yesod.Form.Nic
+import Yesod.Form.Jquery
 
+import StaticFiles
 import BioSpace
 
 (<++>) = Text.append
@@ -37,3 +39,10 @@ instance YesodNic BioSpace where
 htmlFieldNic :: Field (GWidget sub BioSpace ()) FormMessage Html
 htmlFieldNic = nicHtmlField
 
+instance YesodJquery BioSpace where
+    urlJqueryJs               _ = Left (StaticR js_jquery_min_js)
+    urlJqueryUiJs             _ = Left (StaticR js_jquery_ui_min_js)
+    urlJqueryUiCss            _ = Left (StaticR css_jquery_ui_css)
+    urlJqueryUiDateTimePicker _ = Left (StaticR js_jquery_ui_datetimepicker_min_js)
+
+dateTimeField = jqueryDayTimeField

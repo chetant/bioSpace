@@ -14,4 +14,4 @@
             <div .inline>
                 <a href=@{ProjectEditR (projectName entry)}>Edit
                 \    #
-                <a href="TODO:delete">Delete
+                <a href=@{ProjectDeleteR (projectName entry)}>Delete

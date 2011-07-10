@@ -28,3 +28,10 @@
 /permission/page/#Text PageUserPermissionsR GET POST
 /edit/page/#Text PageEditR GET POST
 /delete/page/#Text PageDeleteR GET POST
+
+/events EventsR GET
+/event/#Int/#Int/#Text EventR GET
+/create/event EventCreateR GET POST
+/permission/event/#Int/#Int/#Text EventUserPermissionsR GET POST
+/edit/event/#Int/#Int/#Text EventEditR GET POST
+/delete/event/#Int/#Int/#Text EventDeleteR GET POST

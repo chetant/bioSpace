@@ -1,0 +1,16 @@
+
+<h1>
+    <a href=@{EventsR} .headlink> Events
+    \ > #{eventTitle event}
+<hr>
+$if canEdit
+    <div>
+        <a href=@{EventEditR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>Edit Event
+<div>Collaborators: #
+    $forall p <- ownProfiles
+        $maybe p' <- p
+            #{profileFullName p'} #
+    $if canEdit
+        <a href=@{EventUserPermissionsR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>Add/Change Collaborators
+<h2> #{eventTitle event}
+<div>^{description}
