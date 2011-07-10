@@ -40,8 +40,8 @@ BlogEntryAuthor
     UniqueBlogEntryAuthor blogEntry author
 
 Event
-    date Day Eq Desc
-    time TimeOfDay Eq Desc
+    date Day Eq Ge Le Desc
+    time TimeOfDay Eq Ge Le Desc
     isPublic Bool Eq
     title Text
     description Text

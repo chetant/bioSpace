@@ -30,6 +30,9 @@
 /delete/page/#Text PageDeleteR GET POST
 
 /events EventsR GET
+/events/#Text EventsViewR GET
+/events/#Text/from/#Int EventsFromR GET
+/events/#Text/between/#Int/#Int EventsBetR GET
 /event/#Int/#Int/#Text EventR GET
 /create/event EventCreateR GET POST
 /permission/event/#Int/#Int/#Text EventUserPermissionsR GET POST

@@ -33,7 +33,7 @@
                                <a .entry href=/projects >Projects
                           <li .separator>|
                           <li .entry>
-                               <a .entry href=/page/Events >Events
+                               <a .entry href=/events >Events
                           <li .separator>|
                           <li .entry>
                                <a .entry href=/page/Contact_Us >Contact Us

@@ -18,6 +18,9 @@ getRootR = do
   defaultLayout $ do
              h2id <- lift newIdent
              setTitle "Welcome to Genspace"
+             addScript $ StaticR js_jquery_min_js
+             addScript $ StaticR js_jquery_ui_min_js
+             addStylesheet $ StaticR css_jquery_ui_css
              addScript $ StaticR js_jquery_cycle_all_min_js
              addJulius $(juliusFile "homepage")
              addWidget $(widgetFile "homepage")

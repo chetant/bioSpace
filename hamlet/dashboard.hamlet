@@ -12,4 +12,6 @@ $maybe profile <- mprofile
 <div>
     <a href=@{PageCreateR}>Create Page
 <div>
+    <a href=@{EventCreateR}>Create Event
+<div>
     <a href=@{AuthR LogoutR}>Logout

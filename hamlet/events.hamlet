@@ -1,16 +1,20 @@
 <h1>Events @ Genspace
 <table width="100%">
  <tr>
-  <td style="margin:auto">
+  <td style="margin:auto;vertical-align:top">
+    Upcoming Events (#{getShortFormTime startDay} - #{getShortFormTime endDay})
+    <hr>
     $forall event <- events
-        <a href=@{EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>
-            <h2 .eventslide>#{eventTitle event}
-  <td style="width:15%;text-align:right;vertical-align:text-top">
-    $forall event <- events
-        <div style="padding-top:10px">
-            <a href=@{EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>#{eventTitle event}
-        $if isAdmin
-            <div .inline>
-                <a href=@{EventEditR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>Edit
-                \    #
-                <a href=@{EventDeleteR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>Delete
+        <h2>
+            <a .normallink href=@{EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>
+                #{eventTitle event}
+  <td style="width:15%">
+    <div .inline id="calendar">
+    <table style="width:100%">
+     <tr>
+      <td style="text-align:center">
+        <a href=@{EventsViewR "week"}>Week
+      <td style="text-align:center">
+        <a href=@{EventsViewR "month"}>Month
+      <td style="text-align:center">
+        <a href=@{EventsViewR "year"}>Year

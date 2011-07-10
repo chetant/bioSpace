@@ -113,3 +113,6 @@ hr
     border-width: 1px
     border-style: dotted
     border-color: #DDDDDD
+
+.highlighted
+    background-color: #96a97e

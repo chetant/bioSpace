@@ -6,14 +6,9 @@ import Control.Monad(when, unless)
 import Data.Text(Text)
 import qualified Data.Text as Text
 import Data.Text.Lazy(toStrict)
-import Data.Time(UTCTime(..)
-                ,timeOfDayToTime
-                ,timeToTimeOfDay
-                ,fromGregorian
-                ,toGregorian
-                ,Day(..)
-                ,TimeOfDay(..)
-                )
+import Data.Time
+import System.Locale(defaultTimeLocale)
+import Data.Char(isSpace)
 import Text.Hamlet(renderHtmlText, preEscapedText)
 import Data.String
 import Yesod.Auth
@@ -22,15 +17,64 @@ import Yesod.Auth.HashDB(UserId, addUser, changePasswd)
 import Fields.ImageUpload
 import Fields.Users
 import Handler.Commons
+import StaticFiles
 import BioSpace
 
 getEventsR :: Handler RepHtml
-getEventsR = do
+getEventsR = getEventsViewR "week"
+
+getEventsViewR :: Text -> Handler RepHtml
+getEventsViewR viewRange = do
+  currTime <- utcToLocalTime <$> liftIO getCurrentTimeZone <*> liftIO getCurrentTime
+  let startDay = (getDateInt . localDay) currTime
+      daysOffset = getDayOffset viewRange
+      endDay = (getDateInt . (addDays daysOffset) . localDay) currTime
+  getEventsBetR viewRange startDay endDay
+
+getEventsFromR :: Text -> Int -> Handler RepHtml
+getEventsFromR viewRange fromDate = do
+  let daysOffset = getDayOffset viewRange
+      toDate = (getDateInt . (addDays daysOffset) . dateFromYYYYMMDD) fromDate
+  getEventsBetR viewRange fromDate toDate
+
+getEventsBetR :: Text -> Int -> Int -> Handler RepHtml
+getEventsBetR viewRange fromDate toDate = do
   mu <- maybeAuthId
-  events <- map snd <$> (runDB $ selectList [] [] 0 0)
   isAdmin <- maybe (return False) checkAdmin mu
+  currTime <- utcToLocalTime <$> liftIO getCurrentTimeZone <*> liftIO getCurrentTime
+  let startDay = dateFromYYYYMMDD fromDate
+      endDay = dateFromYYYYMMDD toDate
+  events <- map snd <$> (runDB $ selectList [EventDateGe startDay, EventDateLe endDay] [] 0 0)
   defaultLayout $ do
                setTitle "Genspace - Events"
+               addScript $ StaticR js_jquery_min_js
+               addScript $ StaticR js_jquery_ui_min_js
+               addStylesheet $ StaticR css_jquery_ui_css
+               addScript $ StaticR js_jquery_ui_datepicker_min_js
+               addJulius $ [julius| 
+                            $(function()
+                              {
+                                var startDate = $.datepicker.parseDate('yymmdd', "#{show fromDate}");
+                                var endDate = $.datepicker.parseDate('yymmdd', "#{show toDate}");
+                                $("#calendar").datepicker({
+                                       dateFormat: "yymmdd",
+                                       onSelect: function(dateText, inst)
+                                       {
+                                         window.location = "/events/#{viewRange}/from/"+dateText;
+                                       },
+                                       beforeShowDay: function(date)
+                                       {
+                                           if(startDate != null && endDate != null
+                                              && date.getTime() >= startDate.getTime() 
+                                              && date.getTime() <= endDate.getTime())
+                                           {
+                                             return [true, "highlighted"];
+                                           }
+                                           return [true, ""];
+                                       }
+                                });
+                              })
+                            |]
                addWidget $(widgetFile "events")
 
 getEventR :: Int -> Int -> Text -> Handler RepHtml
@@ -191,6 +235,7 @@ getEvent (Event_ title datetime desc isPublic mprice) uId =
           isPublic title desc mprice uId
 
 eventDateTime ev = UTCTime (eventDate ev) (timeOfDayToTime $ eventTime ev)
+eventDateLocalTime ev = LocalTime (eventDate ev) (eventTime ev)
 
 eventFormlet event = renderDivs $ Event_
                          <$> areq textField "Name" (eventTitle <$> event)
@@ -224,10 +269,24 @@ getEventAndOwnersOr404 dt tm title = do
 getOwners evid = runDB (map (eventUserUser . snd) <$> selectList [EventUserEventEq evid] [] 0 0)
 
 getDateIntFromEvent :: Event -> Int
-getDateIntFromEvent e = yyyy * 10000 + mm*100 + dd
-    where (yrI, mm, dd) = toGregorian (eventDate e)
-          yyyy = fromIntegral yrI
+getDateIntFromEvent = getDateInt . eventDate
 
 getTimeIntFromEvent :: Event -> Int
-getTimeIntFromEvent e = hh * 100 + mm
-    where (TimeOfDay hh mm _) = eventTime e
+getTimeIntFromEvent = getTimeInt . eventTime
+
+getDateInt :: Day -> Int
+getDateInt day = yyyy * 10000 + mm*100 + dd
+    where (yrI, mm, dd) = toGregorian day
+          yyyy = fromIntegral yrI
+
+getTimeInt :: TimeOfDay -> Int
+getTimeInt (TimeOfDay hh mm _) = hh * 100 + mm
+
+getFormattedTime = (formatTime defaultTimeLocale " %l:%M %p on %A %b %e, %Y") . eventDateLocalTime
+getShortFormTime = formatTime defaultTimeLocale "%A, %B %e"
+
+getDayOffset :: Text -> Integer
+getDayOffset "week" = 7
+getDayOffset "month" = 30
+getDayOffset "year" = 365
+getDayOffset _ = 7
