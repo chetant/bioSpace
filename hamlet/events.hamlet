@@ -4,11 +4,23 @@
   <td style="margin:auto;vertical-align:top">
     Upcoming Events (#{getShortFormTime startDay} - #{getShortFormTime endDay})
     <hr>
-    $forall event <- events
-        <h2>
-            <a .normallink href=@{EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>
-                #{eventTitle event}
-  <td style="width:15%">
+    $forall dayEvents <- events
+        <h4>
+            #{getShortFormTime (eventDate (head dayEvents))}
+        $forall event <- dayEvents
+            <h3>
+                <a .normallink href=@{EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>
+                    #{getShortTime (eventTime event)} - #{eventTitle event}
+            <table>
+                <tr>
+                    <td style="width:128px">
+                        $maybe photoURL <- eventIconImage event
+                            <img .eventicon src=/static/uploads/#{photoURL}>
+                        $nothing
+                            <img .eventicon src=/static/img/NoEvent.png>
+                    <td style="margin:auto;text-align:left;vertical-align:top">
+                        #{eventSlug event}
+  <td style="width:15%;vertical-align:top">
     <div .inline id="calendar">
     <table style="width:100%">
      <tr>

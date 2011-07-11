@@ -38,6 +38,8 @@ div
         width: 100%
     .topbutton
         display:inline-block
+    #slug
+        width: 100%
     #description
         width: 100%
     #pagecontents
@@ -85,6 +87,9 @@ img
         position: relative
         width: 150px
         height: 150px
+    .eventicon
+        position: relative
+        height: 128px
 a
     :hover
         color: #96a97e

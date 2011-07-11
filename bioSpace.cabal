@@ -78,4 +78,5 @@ executable         bioSpace
                  , time
                  , filepath
                  , old-locale
+                 , containers
                  , gd >= 3000 && < 4000

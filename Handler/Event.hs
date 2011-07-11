@@ -13,6 +13,8 @@ import Text.Hamlet(renderHtmlText, preEscapedText)
 import Data.String
 import Yesod.Auth
 import Yesod.Auth.HashDB(UserId, addUser, changePasswd)
+import qualified Data.Map as Map
+import Data.Maybe(fromJust)
 
 import Fields.ImageUpload
 import Fields.Users
@@ -44,7 +46,10 @@ getEventsBetR viewRange fromDate toDate = do
   currTime <- utcToLocalTime <$> liftIO getCurrentTimeZone <*> liftIO getCurrentTime
   let startDay = dateFromYYYYMMDD fromDate
       endDay = dateFromYYYYMMDD toDate
-  events <- map snd <$> (runDB $ selectList [EventDateGe startDay, EventDateLe endDay] [] 0 0)
+      toEntry (_, e) = (eventDate e, [e])
+  eventsList <- map toEntry <$> (runDB $ selectList [EventDateGe startDay, EventDateLe endDay] [] 0 0)
+  let events :: [[Event]]
+      events = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty eventsList
   defaultLayout $ do
                setTitle "Genspace - Events"
                addScript $ StaticR js_jquery_min_js
@@ -228,11 +233,11 @@ postEventDeleteR dt tm title = do
 ----- Helper functions ----
 ---------------------------
 
-data Event_ = Event_ Text UTCTime Text Bool (Maybe Double) deriving (Show, Eq)
+data Event_ = Event_ Text UTCTime (Maybe Text) Text Text Bool (Maybe Double) deriving (Show, Eq)
 
-getEvent (Event_ title datetime desc isPublic mprice) uId = 
+getEvent (Event_ title datetime mimg slug desc isPublic mprice) uId = 
     Event (utctDay datetime) (timeToTimeOfDay . utctDayTime $ datetime)
-          isPublic title desc mprice uId
+          isPublic title mimg slug desc mprice uId
 
 eventDateTime ev = UTCTime (eventDate ev) (timeOfDayToTime $ eventTime ev)
 eventDateLocalTime ev = LocalTime (eventDate ev) (eventTime ev)
@@ -240,11 +245,15 @@ eventDateLocalTime ev = LocalTime (eventDate ev) (eventTime ev)
 eventFormlet event = renderDivs $ Event_
                          <$> areq textField "Name" (eventTitle <$> event)
                          <*> areq dateTimeField "Date & Time" (eventDateTime <$> event)
+                         <*> imageFieldOpt "Icon Image" (eventIconImage <$> event)
+                         <*> areq textField slugFS (eventSlug <$> event)
                          <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic descFS (preEscapedText . eventDescription <$> event)))
                          <*> areq boolField "Event Is Public?" (eventIsPublic <$> event)
                          <*> aopt doubleField "Price" (eventPrice <$> event)
     where descFS :: FieldSettings Text
           descFS = FieldSettings "Description" Nothing (Just "description") (Just "description")
+          slugFS :: FieldSettings Text
+          slugFS = FieldSettings "Slug" Nothing (Just "slug") (Just "slug")
 
 dateFromYYYYMMDD :: Int -> Day
 dateFromYYYYMMDD yyyymmdd = fromGregorian yyyy mm dd
@@ -284,6 +293,7 @@ getTimeInt (TimeOfDay hh mm _) = hh * 100 + mm
 
 getFormattedTime = (formatTime defaultTimeLocale " %l:%M %p on %A %b %e, %Y") . eventDateLocalTime
 getShortFormTime = formatTime defaultTimeLocale "%A, %B %e"
+getShortTime = formatTime defaultTimeLocale "%l:%M %p"
 
 getDayOffset :: Text -> Integer
 getDayOffset "week" = 7

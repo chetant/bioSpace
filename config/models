@@ -44,6 +44,8 @@ Event
     time TimeOfDay Eq Ge Le Desc
     isPublic Bool Eq
     title Text
+    iconImage Text Update Maybe
+    slug Text
     description Text
     price Double Maybe
     organizer UserId Eq
