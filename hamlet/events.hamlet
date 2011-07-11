@@ -8,25 +8,35 @@
         <h4>
             #{getShortFormTime (eventDate (head dayEvents))}
         $forall event <- dayEvents
-            <h3>
-                <a .normallink href=@{EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>
-                    #{getShortTime (eventTime event)} - #{eventTitle event}
             <table>
                 <tr>
-                    <td style="width:128px">
+                    <td>
                         $maybe photoURL <- eventIconImage event
                             <img .eventicon src=/static/uploads/#{photoURL}>
                         $nothing
                             <img .eventicon src=/static/img/NoEvent.png>
                     <td style="margin:auto;text-align:left;vertical-align:top">
+                        <h3>
+                            <a .normallink href=@{EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>
+                                #{getShortTime (eventTime event)} - #{eventTitle event}
                         #{eventSlug event}
+        <hr>
   <td style="width:15%;vertical-align:top">
     <div .inline id="calendar">
     <table style="width:100%">
      <tr>
       <td style="text-align:center">
-        <a href=@{EventsViewR "week"}>Week
+        $if rangeIsWeek viewRange
+            Week
+        $else
+            <a .normallink href=@{EventsViewR "week"}>Week
       <td style="text-align:center">
-        <a href=@{EventsViewR "month"}>Month
+        $if rangeIsMonth viewRange
+            Month
+        $else
+            <a .normallink href=@{EventsViewR "month"}>Month
       <td style="text-align:center">
-        <a href=@{EventsViewR "year"}>Year
+        $if rangeIsYear viewRange
+            Year
+        $else
+            <a .normallink href=@{EventsViewR "year"}>Year

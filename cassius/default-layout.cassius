@@ -89,7 +89,7 @@ img
         height: 150px
     .eventicon
         position: relative
-        height: 128px
+        height: 100px
 a
     :hover
         color: #96a97e

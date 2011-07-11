@@ -300,3 +300,10 @@ getDayOffset "week" = 7
 getDayOffset "month" = 30
 getDayOffset "year" = 365
 getDayOffset _ = 7
+
+rangeIsWeek "week" = True
+rangeIsWeek _ = False
+rangeIsMonth "month" = True
+rangeIsMonth _ = False
+rangeIsYear "year" = True
+rangeIsYear _ = False
