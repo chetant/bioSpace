@@ -14,7 +14,7 @@ import Data.String
 import Yesod.Auth
 import Yesod.Auth.HashDB(UserId, addUser, changePasswd)
 import qualified Data.Map as Map
-import Data.Maybe(fromJust)
+import Data.Maybe(fromJust, isJust)
 
 import Fields.ImageUpload
 import Fields.Users
@@ -47,7 +47,8 @@ getEventsBetR viewRange fromDate toDate = do
   let startDay = dateFromYYYYMMDD fromDate
       endDay = dateFromYYYYMMDD toDate
       toEntry (_, e) = (eventDate e, [e])
-  eventsList <- map toEntry <$> (runDB $ selectList [EventDateGe startDay, EventDateLe endDay] [] 0 0)
+      isAuthorized (_,e) = (isJust mu) || (eventIsPublic e)
+  eventsList <- ((map toEntry) . (filter isAuthorized)) <$> (runDB $ selectList [EventDateGe startDay, EventDateLe endDay] [] 0 0)
   let events :: [[Event]]
       events = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty eventsList
   defaultLayout $ do
