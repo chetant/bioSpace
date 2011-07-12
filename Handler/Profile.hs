@@ -102,9 +102,7 @@ postPersonEditR fName lName = do
   case res of
     FormSuccess profile -> do
              -- Only Admin can make profile.isAdmin = True
-             liftIO $ putStrLn $ "Got Person:" ++ show profile
              when ((not isAdmin) && profileIsAdmin profile) $ permissionDenied "Not Authorized"
-             liftIO $ putStrLn "REPLACE!"
              runDB $ replace pId profile
              redirect RedirectTemporary (PersonR (profileFirstName profile) (profileLastName profile))
     FormFailure ts -> do

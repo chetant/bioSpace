@@ -75,12 +75,10 @@ imageFieldOpt :: (MonadIO m, Monad m2) =>
               -> Maybe (Maybe Text)
               -> AForm ([FieldView (GGWidget master m2 ())] -> [FieldView (GGWidget master m2 ())]) master (GGHandler sub master m) (Maybe Text)
 imageFieldOpt = imageFieldGeneric 
-                (\img -> maybe (FormSuccess Nothing) FormSuccess (test img))
+                (\img -> maybe (FormSuccess Nothing) FormSuccess img)
                 Just 
                 (maybe Nothing id) 
                 (staticdir </> "uploads")
-    where test a
-              | trace ("Got:" ++ show a) True = a
 
 storeImage :: FilePath -> FileInfo -> IO (Maybe FilePath)
 storeImage uploadDir fi = do

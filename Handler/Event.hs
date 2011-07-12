@@ -187,7 +187,6 @@ postEventEditR dt tm title = do
     FormSuccess event_ -> do
              let event = getEvent event_ uId
              runDB $ replace evid event
-             liftIO $ putStrLn $ "Obj:" ++ show event
              redirect RedirectTemporary (EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event))
     FormFailure ts -> do
              setMessage . toHtml $ join ", " ts
