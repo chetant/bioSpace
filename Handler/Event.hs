@@ -234,11 +234,11 @@ postEventDeleteR dt tm title = do
 ----- Helper functions ----
 ---------------------------
 
-data Event_ = Event_ Text UTCTime (Maybe Text) Text Text Bool (Maybe Double) deriving (Show, Eq)
+data Event_ = Event_ Text UTCTime (Maybe Text) Text Text Bool Double (Maybe Double) deriving (Show, Eq)
 
-getEvent (Event_ title datetime mimg slug desc isPublic mprice) uId = 
+getEvent (Event_ title datetime mimg slug desc isPublic duration mprice) uId = 
     Event (utctDay datetime) (timeToTimeOfDay . utctDayTime $ datetime)
-          isPublic title mimg slug desc mprice uId
+          isPublic title mimg slug desc duration mprice uId
 
 eventDateTime ev = UTCTime (eventDate ev) (timeOfDayToTime $ eventTime ev)
 eventDateLocalTime ev = LocalTime (eventDate ev) (eventTime ev)
@@ -250,6 +250,7 @@ eventFormlet event = renderDivs $ Event_
                          <*> areq textField slugFS (eventSlug <$> event)
                          <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic descFS (preEscapedText . eventDescription <$> event)))
                          <*> areq boolField "Event Is Public?" (eventIsPublic <$> event)
+                         <*> areq doubleField "Duration(hours)" (eventDuration <$> event)
                          <*> aopt doubleField "Price" (eventPrice <$> event)
     where descFS :: FieldSettings Text
           descFS = FieldSettings "Description" Nothing (Just "description") (Just "description")
@@ -308,3 +309,54 @@ rangeIsMonth "month" = True
 rangeIsMonth _ = False
 rangeIsYear "year" = True
 rangeIsYear _ = False
+
+durationInHrs :: Event -> Int
+durationInHrs = round . eventDuration
+
+-- ICAL format gen functions
+
+typeICAL :: ContentType
+typeICAL = "text/calendar; charset=utf-8"
+
+newtype RepICAL = RepICAL Content
+
+instance HasReps RepICAL where
+    chooseRep (RepICAL c) _ = return (typeICAL, c)
+
+getICALR :: Handler RepICAL
+getICALR = do
+  mu <- maybeAuthId
+  let isAuthorized (_,e) = (isJust mu) || (eventIsPublic e)
+  events <- map snd <$> (runDB $ selectList [] [] 0 0)
+  buildICAL events
+
+buildICAL :: [Event] -> Handler RepICAL
+buildICAL es = do
+  tz <- liftIO getCurrentTimeZone
+  os <- map snd <$> (runDB $ mapM (getBy404 . UniqueProfile . eventOrganizer) es)
+  getURL <- getUrlRender
+  return $ RepICAL (toContent (calendar getURL tz (zip os es)))
+    where calendar :: (Route BioSpace -> Text) -> TimeZone -> [(Profile, Event)] -> Text
+          calendar getURL tz oes = 
+               "BEGIN:VCALENDAR\n\
+               \VERSION:2.0\n\
+               \PRODID:-//bioSpace//genspace/NONSGML v1.0//EN\n"
+               <++> foldr (showEvent getURL tz) "END:VCALENDAR\n" oes
+          showEvent getURL tz (o, e) r = 
+               "BEGIN:VEVENT\n" <++>
+               "UID:" <++> getUID e <++> "\n" <++>
+               "DTSTAMP:" <++> eventTimeStr tz e <++> "\n" <++>
+               "ORGANIZER" <++> getOrganizerContact o <++> ":\n" <++>
+               "DTSTART:" <++> eventTimeStr tz e <++> "\n" <++>
+               "DURATION:" <++> getEventDuration e <++> "\n" <++>
+               "SUMMARY:" <++> eventTitle e <++> "\n" <++>
+               "DESCRIPTION;ALTREP=\"" <++> eventURL <++> "\":Please click link or go to " <++> eventURL <++> " to access event details\n" <++>
+               "URL:" <++> eventURL <++> "\n" <++>
+               "END:VEVENT\n"
+               <++> r
+              where eventURL = getURL (EventR (getDateIntFromEvent e) (getTimeIntFromEvent e) (eventTitle e))
+          getUID e = (Text.pack . show) (getDateIntFromEvent e) <++> (Text.pack . show) (getTimeIntFromEvent e) <++> eventTitle e <++> "@genspace.org"
+          eventTimeStr tz e = Text.pack $ formatTime defaultTimeLocale "%Y%m%dT%H%M%SZ" (eventUTCTime tz e)
+          eventUTCTime tz e = localTimeToUTC tz (eventDateLocalTime e)
+          getOrganizerContact o = "CN=" <++> profileFullName o
+          getEventDuration e = "PT" <++> (Text.pack . show) (durationInHrs e) <++> "H"

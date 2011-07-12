@@ -47,6 +47,7 @@ Event
     iconImage Text Update Maybe
     slug Text
     description Text
+    duration Double default=1
     price Double Maybe
     organizer UserId Eq
     UniqueEvent date time title

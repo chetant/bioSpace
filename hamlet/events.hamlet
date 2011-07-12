@@ -29,14 +29,14 @@
         $if rangeIsWeek viewRange
             Week
         $else
-            <a .normallink href=@{EventsViewR "week"}>Week
+            <a .normallink href=@{EventsFromR "week" fromDate}>Week
       <td style="text-align:center">
         $if rangeIsMonth viewRange
             Month
         $else
-            <a .normallink href=@{EventsViewR "month"}>Month
+            <a .normallink href=@{EventsFromR "month" fromDate}>Month
       <td style="text-align:center">
         $if rangeIsYear viewRange
             Year
         $else
-            <a .normallink href=@{EventsViewR "year"}>Year
+            <a .normallink href=@{EventsFromR "year" fromDate}>Year

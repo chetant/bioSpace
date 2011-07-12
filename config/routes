@@ -38,3 +38,4 @@
 /permission/event/#Int/#Int/#Text EventUserPermissionsR GET POST
 /edit/event/#Int/#Int/#Text EventEditR GET POST
 /delete/event/#Int/#Int/#Text EventDeleteR GET POST
+/feeds/events.ics ICALR GET
