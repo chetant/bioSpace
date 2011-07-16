@@ -65,6 +65,7 @@ getEventsBetR viewRange fromDate toDate = do
                                 var startDate = $.datepicker.parseDate('yymmdd', "#{show fromDate}");
                                 var endDate = $.datepicker.parseDate('yymmdd', "#{show toDate}");
                                 $("#calendar").datepicker({
+                                       defaultDate: startDate,
                                        dateFormat: "yymmdd",
                                        onSelect: function(dateText, inst)
                                        {
