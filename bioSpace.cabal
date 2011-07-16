@@ -76,6 +76,8 @@ executable         bioSpace
                  , warp
                  , blaze-builder
                  , time
+                 , timezone-series
+                 , timezone-olson
                  , filepath
                  , old-locale
                  , containers

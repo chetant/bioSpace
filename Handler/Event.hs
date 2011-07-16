@@ -7,6 +7,8 @@ import Data.Text(Text)
 import qualified Data.Text as Text
 import Data.Text.Lazy(toStrict)
 import Data.Time
+import Data.Time.LocalTime.TimeZone.Series(TimeZoneSeries, localTimeToUTC')
+import Data.Time.LocalTime.TimeZone.Olson(getTimeZoneSeriesFromOlsonFile)
 import System.Locale(defaultTimeLocale)
 import Data.Char(isSpace)
 import Text.Hamlet(renderHtmlText, preEscapedText)
@@ -331,22 +333,23 @@ getICALR = do
 
 buildICAL :: [Event] -> Handler RepICAL
 buildICAL es = do
-  tz <- liftIO getCurrentTimeZone
+  -- TODO: get this reference timezone either per user, or change calendar to store events in UTC
+  tzs <- liftIO $ getTimeZoneSeriesFromOlsonFile "/usr/share/zoneinfo/America/New_York"
   os <- map snd <$> (runDB $ mapM (getBy404 . UniqueProfile . eventOrganizer) es)
   getURL <- getUrlRender
-  return $ RepICAL (toContent (calendar getURL tz (zip os es)))
-    where calendar :: (Route BioSpace -> Text) -> TimeZone -> [(Profile, Event)] -> Text
-          calendar getURL tz oes = 
+  return $ RepICAL (toContent (calendar getURL tzs (zip os es)))
+    where calendar :: (Route BioSpace -> Text) -> TimeZoneSeries -> [(Profile, Event)] -> Text
+          calendar getURL tzs oes = 
                "BEGIN:VCALENDAR\n\
                \VERSION:2.0\n\
                \PRODID:-//bioSpace//genspace/NONSGML v1.0//EN\n"
-               <++> foldr (showEvent getURL tz) "END:VCALENDAR\n" oes
-          showEvent getURL tz (o, e) r = 
+               <++> foldr (showEvent getURL tzs) "END:VCALENDAR\n" oes
+          showEvent getURL tzs (o, e) r = 
                "BEGIN:VEVENT\n" <++>
                "UID:" <++> getUID e <++> "\n" <++>
-               "DTSTAMP:" <++> eventTimeStr tz e <++> "\n" <++>
+               "DTSTAMP:" <++> eventTimeStr tzs e <++> "\n" <++>
                "ORGANIZER" <++> getOrganizerContact o <++> ":\n" <++>
-               "DTSTART:" <++> eventTimeStr tz e <++> "\n" <++>
+               "DTSTART:" <++> eventTimeStr tzs e <++> "\n" <++>
                "DURATION:" <++> getEventDuration e <++> "\n" <++>
                "SUMMARY:" <++> eventTitle e <++> "\n" <++>
                "DESCRIPTION;ALTREP=\"" <++> eventURL <++> "\":Please click link or go to " <++> eventURL <++> " to access event details\n" <++>
@@ -355,7 +358,7 @@ buildICAL es = do
                <++> r
               where eventURL = getURL (EventR (getDateIntFromEvent e) (getTimeIntFromEvent e) (eventTitle e))
           getUID e = (Text.pack . show) (getDateIntFromEvent e) <++> (Text.pack . show) (getTimeIntFromEvent e) <++> eventTitle e <++> "@genspace.org"
-          eventTimeStr tz e = Text.pack $ formatTime defaultTimeLocale "%Y%m%dT%H%M%SZ" (eventUTCTime tz e)
-          eventUTCTime tz e = localTimeToUTC tz (eventDateLocalTime e)
+          eventTimeStr tzs e = Text.pack $ formatTime defaultTimeLocale "%Y%m%dT%H%M%SZ" (eventUTCTime tzs e)
+          eventUTCTime tzs e = localTimeToUTC' tzs (eventDateLocalTime e)
           getOrganizerContact o = "CN=" <++> profileFullName o
           getEventDuration e = "PT" <++> (Text.pack . show) (durationInHrs e) <++> "H"
