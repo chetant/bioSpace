@@ -2,7 +2,7 @@ $(document).ready(function() {
     $("div.cycle").cycle({
 	fx: 'scrollLeft',
 	speed: 1500,
-	timeout: 3000,
+	timeout: 4000,
 	pause: 1,
 	random: 1
     })
