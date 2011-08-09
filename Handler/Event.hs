@@ -25,7 +25,7 @@ import StaticFiles
 import BioSpace
 
 getEventsR :: Handler RepHtml
-getEventsR = getEventsViewR "week"
+getEventsR = getEventsViewR "month"
 
 getEventsViewR :: Text -> Handler RepHtml
 getEventsViewR viewRange = do

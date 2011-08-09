@@ -6,6 +6,7 @@
     <body>
         <div .content>
             <div .header>
+             <div style="text-align:center">
                  <a href=/>
                      <img .logo src=/static/img/GenspaceHeaderLogo.jpg alt=Logo>
                  <div .headerlinks>
