@@ -55,6 +55,7 @@ getEventsBetR viewRange fromDate toDate = do
       events = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty eventsList
       eventDaysStr = join "," $ map (juliusifyDate . eventDate . head) events
       juliusifyDate date = "$.datepicker.parseDate('yymmdd', \"" <++> (Text.pack . show . getDateInt) date <++> "\")"
+      slug event = addHtml (preEscapedText . eventSlug $ event)
   defaultLayout $ do
                setTitle "Genspace - Events"
                addScript $ StaticR js_jquery_min_js
@@ -255,11 +256,14 @@ getEvent (Event_ title datetime mimg slug desc isPublic duration mprice) uId =
 eventDateTime ev = UTCTime (eventDate ev) (timeOfDayToTime $ eventTime ev)
 eventDateLocalTime ev = LocalTime (eventDate ev) (eventTime ev)
 
+eventEndTime ev = timeToTimeOfDay $ timeOfDayToTime (eventTime ev) + duration
+    where duration = secondsToDiffTime (floor $ (eventDuration ev) * 3600.0)
+
 eventFormlet event = renderDivs $ Event_
                          <$> areq textField "Name" (eventTitle <$> event)
                          <*> areq dateTimeField "Date & Time" (eventDateTime <$> event)
                          <*> imageFieldOpt "Icon Image" (eventIconImage <$> event)
-                         <*> areq textField slugFS (eventSlug <$> event)
+                         <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic slugFS (preEscapedText . eventSlug <$> event)))
                          <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic descFS (preEscapedText . eventDescription <$> event)))
                          <*> areq boolField "Event Is Public?" (eventIsPublic <$> event)
                          <*> areq doubleField "Duration(hours)" (eventDuration <$> event)
