@@ -53,17 +53,29 @@ getEventsBetR viewRange fromDate toDate = do
   eventsList <- ((map toEntry) . (filter isAuthorized)) <$> (runDB $ selectList [EventDateGe startDay, EventDateLe endDay] [] 0 0)
   let events :: [[Event]]
       events = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty eventsList
+      eventDaysStr = join "," $ map (juliusifyDate . eventDate . head) events
+      juliusifyDate date = "$.datepicker.parseDate('yymmdd', \"" <++> (Text.pack . show . getDateInt) date <++> "\")"
   defaultLayout $ do
                setTitle "Genspace - Events"
                addScript $ StaticR js_jquery_min_js
                addScript $ StaticR js_jquery_ui_min_js
                addStylesheet $ StaticR css_jquery_ui_css
                addScript $ StaticR js_jquery_ui_datepicker_min_js
-               addJulius $ [julius| 
+               addJulius $ [julius|
+                            function set ()
+                            {
+                                var result = {};
+
+                                for (var i = 0; i < arguments.length; i++)
+                                    result[arguments[i]] = true;
+
+                                return result;
+                            }
                             $(function()
                               {
                                 var startDate = $.datepicker.parseDate('yymmdd', "#{show fromDate}");
                                 var endDate = $.datepicker.parseDate('yymmdd', "#{show toDate}");
+                                var eventDates = set(#{eventDaysStr});
                                 $("#calendar").datepicker({
                                        defaultDate: startDate,
                                        dateFormat: "yymmdd",
@@ -73,9 +85,7 @@ getEventsBetR viewRange fromDate toDate = do
                                        },
                                        beforeShowDay: function(date)
                                        {
-                                           if(startDate != null && endDate != null
-                                              && date.getTime() >= startDate.getTime() 
-                                              && date.getTime() <= endDate.getTime())
+                                           if(date in eventDates)
                                            {
                                              return [true, "highlighted"];
                                            }
