@@ -37,6 +37,12 @@
                                <a .entry href=/events >Events
                           <li .separator>|
                           <li .entry>
+                               <a .entry href=/page/Courses >Courses
+                          <li .separator>|
+                          <li .entry>
+                               <a .entry href=/page/Safety >Safety
+                          <li .separator>|
+                          <li .entry>
                                <a .entry href=/page/Contact_Us >Contact Us
                           <li .separator>|
                           <li .entry>

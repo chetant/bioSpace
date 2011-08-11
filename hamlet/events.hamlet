@@ -26,11 +26,6 @@
     <table style="width:100%">
      <tr>
       <td style="text-align:center">
-        $if rangeIsWeek viewRange
-            Week
-        $else
-            <a .normallink href=@{EventsFromR "week" fromDate}>Week
-      <td style="text-align:center">
         $if rangeIsMonth viewRange
             Month
         $else
