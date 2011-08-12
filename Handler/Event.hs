@@ -287,11 +287,14 @@ timeOfDayFromHHMM hhmm = TimeOfDay hh mm 0
 getEventAndOwnersOr404 dt tm title = do
     let date = dateFromYYYYMMDD dt
         time = timeOfDayFromHHMM tm
-    (evid, event) <- runDB $ getBy404 $ UniqueEvent date time title
-    os <- runDB $ (map snd) <$> selectList [EventUserEventEq evid] [] 0 0
-    let owners = map eventUserUser os
-    ownProfiles <- runDB $ mapM (((snd <$>)<$>) . getBy . UniqueProfile) owners
-    return (evid, event, owners, ownProfiles)
+    mret <- runDB $ getBy $ UniqueEvent date time title
+    case mret of
+      Just (evid, event) -> do
+                os <- runDB $ (map snd) <$> selectList [EventUserEventEq evid] [] 0 0
+                let owners = map eventUserUser os
+                ownProfiles <- runDB $ mapM (((snd <$>)<$>) . getBy . UniqueProfile) owners
+                return (evid, event, owners, ownProfiles)
+      _ -> notFound
 
 getOwners evid = runDB (map (eventUserUser . snd) <$> selectList [EventUserEventEq evid] [] 0 0)
 

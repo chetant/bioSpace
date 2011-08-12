@@ -20,12 +20,16 @@ mangleEmail emailAddx = user <++> " < at > " <++> (Text.tail domain)
     where (user, domain) = Text.breakOn "@" emailAddx
 
 checkAdmin uid = do
-  (uId, user) <- runDB $ getBy404 $ UniqueProfile uid
-  return $ profileIsAdmin user
+  mret <- runDB $ getBy $ UniqueProfile uid
+  case mret of 
+    Just (uId, user) -> return $ profileIsAdmin user
+    _ -> notFound
 
 checkAuth pId uid = do
-  (uId, user) <- runDB $ getBy404 $ UniqueProfile uid
-  return $ (uId == pId) || (profileIsAdmin user)
+  mret <- runDB $ getBy $ UniqueProfile uid
+  case mret of
+    Just (uId, user) -> return $ (uId == pId) || (profileIsAdmin user)
+    _ -> notFound
 
 join ch []  = ""
 join ch [a] = a

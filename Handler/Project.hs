@@ -180,10 +180,13 @@ projectFormlet project = renderDivs $ Project
           descFS = FieldSettings "Description" Nothing (Just "description") (Just "description")
 
 getProjectAndOwnersOr404 prjName = do
-    (prid, project) <- runDB $ getBy404 $ UniqueProject prjName
-    os <- runDB $ (map snd) <$> selectList [ProjectUserProjectEq prid] [] 0 0
-    let owners = map projectUserUser os
-    ownProfiles <- runDB $ mapM (((snd <$>)<$>) . getBy . UniqueProfile) owners
-    return (prid, project, owners, ownProfiles)
+    mret <- runDB $ getBy $ UniqueProject prjName
+    case mret of
+      Just (prid, project) -> do
+                os <- runDB $ (map snd) <$> selectList [ProjectUserProjectEq prid] [] 0 0
+                let owners = map projectUserUser os
+                ownProfiles <- runDB $ mapM (((snd <$>)<$>) . getBy . UniqueProfile) owners
+                return (prid, project, owners, ownProfiles)
+      _ -> notFound
 
 getOwners prid = runDB (map (projectUserUser . snd) <$> selectList [ProjectUserProjectEq prid] [] 0 0)

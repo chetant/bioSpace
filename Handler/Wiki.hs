@@ -170,11 +170,14 @@ pageFormlet page = renderDivs $ WikiPage
           descFS = FieldSettings "Contents" Nothing (Just "pagecontents") (Just "pagecontents")
 
 getPageAndOwnersOr404 pgName = do
-    (pgid, page) <- runDB $ getBy404 $ UniqueWikiPage pgName
-    os <- runDB $ (map snd) <$> selectList [WikiPageUserPageEq pgid] [] 0 0
-    let owners = map wikiPageUserUser os
-    ownProfiles <- runDB $ mapM (((snd <$>)<$>) . getBy . UniqueProfile) owners
-    return (pgid, page, owners, ownProfiles)
+    mret <- runDB $ getBy $ UniqueWikiPage pgName
+    case mret of
+      Just (pgid, page) -> do
+                os <- runDB $ (map snd) <$> selectList [WikiPageUserPageEq pgid] [] 0 0
+                let owners = map wikiPageUserUser os
+                ownProfiles <- runDB $ mapM (((snd <$>)<$>) . getBy . UniqueProfile) owners
+                return (pgid, page, owners, ownProfiles)
+      Nothing -> notFound
 
 getOwners pgid = runDB (map (wikiPageUserUser . snd) <$> selectList [WikiPageUserPageEq pgid] [] 0 0)
 

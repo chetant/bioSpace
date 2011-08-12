@@ -35,13 +35,16 @@ getPeopleR = do
                addWidget $(widgetFile "people")
 
 getPersonR fName lName = do
-  (pId, person) <- runDB $ getBy404 $ ProfileFullName fName lName
-  mu <- maybeAuthId
-  canEdit <- maybe (return False) (checkAuth pId) mu
-  defaultLayout $ do
-    setTitle "Genspace - People"
-    let description = addHtml (preEscapedText . profileAbout $ person)
-    addWidget $(widgetFile "person")
+  mret <- runDB $ getBy $ ProfileFullName fName lName
+  case mret of
+    Just (pId, person) -> do
+                           mu <- maybeAuthId
+                           canEdit <- maybe (return False) (checkAuth pId) mu
+                           defaultLayout $ do
+                             setTitle "Genspace - People"
+                             let description = addHtml (preEscapedText . profileAbout $ person)
+                             addWidget $(widgetFile "person")
+    _ -> notFound
 
 getPersonCreateR :: Handler RepHtml
 getPersonCreateR = do
@@ -78,68 +81,81 @@ postPersonCreateR = do
 getPersonEditR :: Text -> Text -> Handler RepHtml
 getPersonEditR fName lName = do
   uId <- requireAuthId
-  (pId, person) <- runDB $ getBy404 $ ProfileFullName fName lName
-  canEdit <- checkAuth pId uId
-  unless canEdit $ permissionDenied "Not Authorized"
-  isAdmin <- checkAdmin uId
-  ((res, form), enctype) <- runFormPost $ profileFormlet uId isAdmin (Just person)
-  defaultLayout $ do
-    setTitle $ toHtml ("Edit Profile - " <++> fName <++> " " <++> lName)
-    let objName :: Text
-        objName = "Edit Profile" <++> " - " <++> profileFullName person
-        actionName :: Text
-        actionName = "Update"
-    addWidget $(widgetFile "createEdit")
+  mret <- runDB $ getBy $ ProfileFullName fName lName
+  case mret of
+    Just (pId, person) -> do
+              canEdit <- checkAuth pId uId
+              unless canEdit $ permissionDenied "Not Authorized"
+              isAdmin <- checkAdmin uId
+              ((res, form), enctype) <- runFormPost $ profileFormlet uId isAdmin (Just person)
+              defaultLayout $ do
+                               setTitle $ toHtml ("Edit Profile - " <++> fName <++> " " <++> lName)
+                               let objName :: Text
+                                   objName = "Edit Profile" <++> " - " <++> profileFullName person
+                                   actionName :: Text
+                                   actionName = "Update"
+                               addWidget $(widgetFile "createEdit")
+    _ -> notFound
 
 postPersonEditR :: Text -> Text -> Handler RepHtml
 postPersonEditR fName lName = do
   uId <- requireAuthId
-  (pId, person) <- runDB $ getBy404 $ ProfileFullName fName lName
-  canEdit <- checkAuth pId uId
-  unless canEdit $ permissionDenied "Not Authorized"
-  isAdmin <- checkAdmin uId
-  ((res, form), enctype) <- runFormPost $ profileFormlet (profileUser person) isAdmin (Just person)
-  case res of
-    FormSuccess profile -> do
-             -- Only Admin can make profile.isAdmin = True
-             when ((not isAdmin) && profileIsAdmin profile) $ permissionDenied "Not Authorized"
-             runDB $ replace pId profile
-             redirect RedirectTemporary (PersonR (profileFirstName profile) (profileLastName profile))
-    FormFailure ts -> do
-             setMessage . toHtml $ foldr (\a b -> a <++> ", " <++> b) "" ts
-             redirect RedirectTemporary (PersonEditR fName lName)
-    _ -> do setMessage . toHtml . Text.pack $ "Form missing!"
-            redirect RedirectTemporary (PersonEditR fName lName)
+  mret <- runDB $ getBy $ ProfileFullName fName lName
+  case mret of
+    Just (pId, person) -> do
+              canEdit <- checkAuth pId uId
+              unless canEdit $ permissionDenied "Not Authorized"
+              isAdmin <- checkAdmin uId
+              ((res, form), enctype) <- runFormPost $ profileFormlet (profileUser person) isAdmin (Just person)
+              case res of
+                FormSuccess profile -> do
+                                -- Only Admin can make profile.isAdmin = True
+                                when ((not isAdmin) && profileIsAdmin profile) $ permissionDenied "Not Authorized"
+                                runDB $ replace pId profile
+                                redirect RedirectTemporary (PersonR (profileFirstName profile) (profileLastName profile))
+                FormFailure ts -> do
+                                setMessage . toHtml $ foldr (\a b -> a <++> ", " <++> b) "" ts
+                                redirect RedirectTemporary (PersonEditR fName lName)
+                _ -> do setMessage . toHtml . Text.pack $ "Form missing!"
+                        redirect RedirectTemporary (PersonEditR fName lName)
+    _ -> notFound
 
 getPersonDeleteR :: Text -> Text -> Handler RepHtml
 getPersonDeleteR fName lName = do
   uId <- requireAuthId
-  (pId, person) <- runDB $ getBy404 $ ProfileFullName fName lName
-  isAdmin <- checkAdmin uId
-  unless isAdmin $ permissionDenied "Not Authorized"
-  when ((profileUser person) == uId) $ permissionDenied "Cannot delete self"
-  ((res, form), enctype) <- runFormPost $ renderDivs $ areq boolField "Are You Sure?" (Just False)
-  defaultLayout $ do
-    setTitle "User Delete Confirmation"
-    addWidget $ [hamlet|
-<h1> Deletion Confirmation - #{fName} #{lName}
-<form enctype="#{enctype}" method=POST>
-    ^{form}
-    <input type="submit" value="Submit">
-|]
+  mret <- runDB $ getBy $ ProfileFullName fName lName
+  case mret of
+    Just (pId, person) -> do
+              isAdmin <- checkAdmin uId
+              unless isAdmin $ permissionDenied "Not Authorized"
+              when ((profileUser person) == uId) $ permissionDenied "Cannot delete self"
+              ((res, form), enctype) <- runFormPost $ renderDivs $ areq boolField "Are You Sure?" (Just False)
+              defaultLayout $ do
+                            setTitle "User Delete Confirmation"
+                            addWidget $ [hamlet|
+                                         <h1> Deletion Confirmation - #{fName} #{lName}
+                                         <form enctype="#{enctype}" method=POST>
+                                             ^{form}
+                                             <input type="submit" value="Submit">
+                                         |]
+    _ -> notFound
 
 postPersonDeleteR :: Text -> Text -> Handler RepHtml
 postPersonDeleteR fName lName = do
   uId <- requireAuthId
-  (pId, person) <- runDB $ getBy404 $ ProfileFullName fName lName
-  isAdmin <- checkAdmin uId
-  unless isAdmin $ permissionDenied "Not Authorized"
-  ((res, form), enctype) <- runFormPost $ renderDivs $ areq boolField "Confirmed" (Just False)
-  case res of
-    FormSuccess True -> runDB $ delete pId >> delete (profileUser person)
-    FormFailure ts -> setMessage . toHtml $ foldr (\a b -> a <++> ", " <++> b) "" ts
-    _ -> return ()
-  redirect RedirectTemporary PeopleR
+  mret <- runDB $ getBy $ ProfileFullName fName lName
+  case mret of
+    Just (pId, person) -> do
+              isAdmin <- checkAdmin uId
+              unless isAdmin $ permissionDenied "Not Authorized"
+              ((res, form), enctype) <- runFormPost $ renderDivs $ areq boolField "Confirmed" (Just False)
+              case res of
+                FormSuccess True -> runDB $ delete pId >> delete (profileUser person)
+                FormFailure ts -> setMessage . toHtml $ foldr (\a b -> a <++> ", " <++> b) "" ts
+                _ -> return ()
+              redirect RedirectTemporary PeopleR
+    _ -> notFound
+  
 
 getAdminCreateR :: Handler RepHtml
 getAdminCreateR = do
