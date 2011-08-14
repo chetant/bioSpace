@@ -1,0 +1,27 @@
+.highlighted_classes
+    background-color: #ff957a
+    text-align: center
+    padding: 4px 10px
+    border-radius: 6px
+.highlighted_talks
+    background-color: #96a97e
+    text-align: center
+    padding: 4px 10px
+    border-radius: 6px
+.highlighted_workshops
+    background-color: #ffe0a3
+    text-align: center
+    padding: 4px 10px
+    border-radius: 6px
+.highlighted_all
+    background-color: #ccc
+    text-align: center
+    padding: 4px 10px
+    margin-top: 4px
+    border-radius: 6px
+a
+    .nodec
+        text-decoration: none
+        color: black
+    .nodec:hover
+        color: white
