@@ -8,7 +8,7 @@
          <div #slideLeftPane>
             <a .normallink href=@{ProjectR (projectName project)}>
               <h2 #slideTitle>#{projectName project}
-            <p #slideText>#{projectSlug project}
+            <p #slideText>^{addHtml (preEscapedText (projectSlug project))}
             <a .normallink href=@{ProjectR (projectName project)}>
               <span #moreInfo>More Info
          <div #slideRightPane>

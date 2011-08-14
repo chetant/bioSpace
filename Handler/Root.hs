@@ -2,6 +2,7 @@
 module Handler.Root where
 
 import Control.Applicative((<$>))
+import Text.Hamlet(renderHtmlText, preEscapedText)
 import StaticFiles
 import BioSpace
 
