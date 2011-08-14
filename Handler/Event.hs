@@ -53,7 +53,9 @@ getEventsBetR viewRange fromDate toDate = do
   eventsList <- ((map toEntry) . (filter isAuthorized)) <$> (runDB $ selectList [EventDateGe startDay, EventDateLe endDay] [] 0 0)
   let events :: [[Event]]
       events = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty eventsList
-      eventDaysStr = join "," $ map (juliusifyDate . eventDate . head) events
+      talkDaysStr = join ","  $ map (juliusifyDate . eventDate . head)  $ filter ((== Talk) . eventType . head) events
+      classDaysStr = join "," $ map (juliusifyDate . eventDate . head) $ filter ((== Class) . eventType . head) events
+      workDaysStr = join ","  $ map (juliusifyDate . eventDate . head)  $ filter ((== Workshop) . eventType . head) events
       juliusifyDate date = "$.datepicker.parseDate('yymmdd', \"" <++> (Text.pack . show . getDateInt) date <++> "\")"
       slug event = addHtml (preEscapedText . eventSlug $ event)
   defaultLayout $ do
@@ -62,39 +64,7 @@ getEventsBetR viewRange fromDate toDate = do
                addScript $ StaticR js_jquery_ui_min_js
                addStylesheet $ StaticR css_jquery_ui_css
                addScript $ StaticR js_jquery_ui_datepicker_min_js
-               addJulius $ [julius|
-                            function set ()
-                            {
-                                var result = {};
-
-                                for (var i = 0; i < arguments.length; i++)
-                                    result[arguments[i]] = true;
-
-                                return result;
-                            }
-                            $(function()
-                              {
-                                var startDate = $.datepicker.parseDate('yymmdd', "#{show fromDate}");
-                                var endDate = $.datepicker.parseDate('yymmdd', "#{show toDate}");
-                                var eventDates = set(#{eventDaysStr});
-                                $("#calendar").datepicker({
-                                       defaultDate: startDate,
-                                       dateFormat: "yymmdd",
-                                       onSelect: function(dateText, inst)
-                                       {
-                                         window.location = "/events/#{viewRange}/from/"+dateText;
-                                       },
-                                       beforeShowDay: function(date)
-                                       {
-                                           if(date in eventDates)
-                                           {
-                                             return [true, "highlighted"];
-                                           }
-                                           return [true, ""];
-                                       }
-                                });
-                              })
-                            |]
+               addJulius $(juliusFile "events")
                addWidget $(widgetFile "events")
 
 getEventR :: Int -> Int -> Text -> Handler RepHtml
@@ -247,11 +217,11 @@ postEventDeleteR dt tm title = do
 ----- Helper functions ----
 ---------------------------
 
-data Event_ = Event_ Text UTCTime (Maybe Text) Text Text Bool Double (Maybe Double) deriving (Show, Eq)
+data Event_ = Event_ Text UTCTime EventType (Maybe Text) Text Text Bool Double (Maybe Double) deriving (Show, Eq)
 
-getEvent (Event_ title datetime mimg slug desc isPublic duration mprice) uId = 
+getEvent (Event_ title datetime etype mimg slug desc isPublic duration mprice) uId = 
     Event (utctDay datetime) (timeToTimeOfDay . utctDayTime $ datetime)
-          isPublic title mimg slug desc duration mprice uId
+          etype isPublic title mimg slug desc duration mprice uId
 
 eventDateTime ev = UTCTime (eventDate ev) (timeOfDayToTime $ eventTime ev)
 eventDateLocalTime ev = LocalTime (eventDate ev) (eventTime ev)
@@ -262,6 +232,7 @@ eventEndTime ev = timeToTimeOfDay $ timeOfDayToTime (eventTime ev) + duration
 eventFormlet event = renderDivs $ Event_
                          <$> areq textField "Name" (eventTitle <$> event)
                          <*> areq dateTimeField "Date & Time" (eventDateTime <$> event)
+                         <*> areq (selectField eventTypes) "Type" (eventType <$> event)
                          <*> imageFieldOpt "Icon Image" (eventIconImage <$> event)
                          <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic slugFS (preEscapedText . eventSlug <$> event)))
                          <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic descFS (preEscapedText . eventDescription <$> event)))
@@ -272,6 +243,7 @@ eventFormlet event = renderDivs $ Event_
           descFS = FieldSettings "Description" Nothing (Just "description") (Just "description")
           slugFS :: FieldSettings Text
           slugFS = FieldSettings "Slug" Nothing (Just "slug") (Just "slug")
+          eventTypes = [("Class", Class),("Talk", Talk),("Workshop", Workshop)]
 
 dateFromYYYYMMDD :: Int -> Day
 dateFromYYYYMMDD yyyymmdd = fromGregorian yyyy mm dd

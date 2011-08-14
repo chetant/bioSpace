@@ -108,5 +108,9 @@ hr
     border-style: dotted
     border-color: #DDDDDD
 
-.highlighted
+.highlighted_class
+    background-color: #ff957a
+.highlighted_talk
     background-color: #96a97e
+.highlighted_work
+    background-color: #ffe0a3

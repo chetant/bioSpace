@@ -43,6 +43,7 @@ BlogEntryAuthor
 Event
     date Day Eq Ge Le Desc
     time TimeOfDay Eq Ge Le Desc
+    type EventType Eq default=Class
     isPublic Bool Eq
     title Text
     iconImage Text Update Maybe

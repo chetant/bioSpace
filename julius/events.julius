@@ -1,0 +1,40 @@
+function set ()
+{
+  var result = {};
+  for (var i = 0; i < arguments.length; i++)
+    result[arguments[i]] = true;
+  return result;
+}
+$(function()
+{
+  var startDate = $.datepicker.parseDate('yymmdd', "#{show fromDate}");
+  var endDate = $.datepicker.parseDate('yymmdd', "#{show toDate}");
+  var talkDates = set(#{talkDaysStr});
+  var classDates = set(#{classDaysStr});
+  var workDates = set(#{workDaysStr});
+  $("#calendar").datepicker({
+         defaultDate: startDate,
+         dateFormat: "yymmdd",
+         onSelect: function(dateText, inst)
+         {
+           window.location = "/events/#{viewRange}/from/"+dateText;
+         },
+         beforeShowDay: function(date)
+         {
+             if(date in talkDates)
+             {
+               return [true, "highlighted_talk"];
+             }
+             if(date in classDates)
+             {
+               return [true, "highlighted_class"];
+             }
+             if(date in workDates)
+             {
+               return [true, "highlighted_work"];
+             }
+	     else
+	       return [true, ""];
+         }
+  });
+})

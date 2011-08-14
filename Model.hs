@@ -4,7 +4,14 @@ module Model where
 import Yesod
 import Yesod.Auth.HashDB
 import Data.Text (Text,unpack)
+import Database.Persist
+import Database.Persist.Sqlite
+import Database.Persist.TH
 import Data.Time
+
+data EventType = Class | Talk | Workshop
+                 deriving (Show, Read, Eq)
+derivePersistField "EventType"
 
 -- You can define all of your database entities in the entities file.
 -- You can find more information on persistent and how to declare entities
