@@ -22,16 +22,21 @@
                         ^{slug event}
         <hr>
   <td style="width:15%;vertical-align:top">
-    <div .inline id="calendar">
+    <div .inline #calendar>
     <table style="width:100%">
      <tr>
-      <td style="text-align:center">
-        $if rangeIsMonth viewRange
-            Month
-        $else
-            <a .normallink href=@{EventsFromR "month" fromDate}>Month
-      <td style="text-align:center">
-        $if rangeIsYear viewRange
-            Year
-        $else
-            <a .normallink href=@{EventsFromR "year" fromDate}>Year
+      <td .highlighted_classes>
+       <a .nodec href=@{EventsViewR "classes"}>
+        Classes
+      <td .highlighted_talks>
+       <a .nodec href=@{EventsViewR "talks"}>
+        Talks
+      <td .highlighted_workshops>
+       <a .nodec href=@{EventsViewR "workshops"}>
+        Workshops
+     <tr style="width:100%">
+      <td>
+      <td .highlighted_all>
+       <a .nodec href=@{EventsViewR "all"}>
+        All
+      <td>

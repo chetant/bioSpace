@@ -15,23 +15,24 @@ $(function()
   $("#calendar").datepicker({
          defaultDate: startDate,
          dateFormat: "yymmdd",
+	 //showButtonPanel: true,
          onSelect: function(dateText, inst)
          {
-           window.location = "/events/#{viewRange}/from/"+dateText;
+           window.location = "/events/all/from/"+dateText;
          },
          beforeShowDay: function(date)
          {
              if(date in talkDates)
              {
-               return [true, "highlighted_talk"];
+               return [true, "highlighted_talks"];
              }
-             if(date in classDates)
+             else if(date in classDates)
              {
-               return [true, "highlighted_class"];
+               return [true, "highlighted_classes"];
              }
-             if(date in workDates)
+             else if(date in workDates)
              {
-               return [true, "highlighted_work"];
+               return [true, "highlighted_workshops"];
              }
 	     else
 	       return [true, ""];

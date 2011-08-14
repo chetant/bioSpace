@@ -25,24 +25,24 @@ import StaticFiles
 import BioSpace
 
 getEventsR :: Handler RepHtml
-getEventsR = getEventsViewR "month"
+getEventsR = getEventsViewR "all"
 
 getEventsViewR :: Text -> Handler RepHtml
-getEventsViewR viewRange = do
+getEventsViewR filterType = do
   currTime <- utcToLocalTime <$> liftIO getCurrentTimeZone <*> liftIO getCurrentTime
   let startDay = (getDateInt . localDay) currTime
-      daysOffset = getDayOffset viewRange
+      daysOffset = numDaysInYear
       endDay = (getDateInt . (addDays daysOffset) . localDay) currTime
-  getEventsBetR viewRange startDay endDay
+  getEventsBetR filterType startDay endDay
 
 getEventsFromR :: Text -> Int -> Handler RepHtml
-getEventsFromR viewRange fromDate = do
-  let daysOffset = getDayOffset viewRange
+getEventsFromR filterType fromDate = do
+  let daysOffset = numDaysInYear
       toDate = (getDateInt . (addDays daysOffset) . dateFromYYYYMMDD) fromDate
-  getEventsBetR viewRange fromDate toDate
+  getEventsBetR filterType fromDate toDate
 
 getEventsBetR :: Text -> Int -> Int -> Handler RepHtml
-getEventsBetR viewRange fromDate toDate = do
+getEventsBetR filterType fromDate toDate = do
   mu <- maybeAuthId
   isAdmin <- maybe (return False) checkAdmin mu
   currTime <- utcToLocalTime <$> liftIO getCurrentTimeZone <*> liftIO getCurrentTime
@@ -50,12 +50,13 @@ getEventsBetR viewRange fromDate toDate = do
       endDay = dateFromYYYYMMDD toDate
       toEntry (_, e) = (eventDate e, [e])
       isAuthorized (_,e) = (isJust mu) || (eventIsPublic e)
-  eventsList <- ((map toEntry) . (filter isAuthorized)) <$> (runDB $ selectList [EventDateGe startDay, EventDateLe endDay] [] 0 0)
+      evFilter = (buildEvTypeFilter filterType) . snd
+  eventsList <- ((map toEntry) . (filter evFilter) . (filter isAuthorized)) <$> (runDB $ selectList [EventDateGe startDay, EventDateLe endDay] [] 0 0)
   let events :: [[Event]]
       events = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty eventsList
-      talkDaysStr = join ","  $ map (juliusifyDate . eventDate . head)  $ filter ((== Talk) . eventType . head) events
+      talkDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((== Talk) . eventType . head) events
       classDaysStr = join "," $ map (juliusifyDate . eventDate . head) $ filter ((== Class) . eventType . head) events
-      workDaysStr = join ","  $ map (juliusifyDate . eventDate . head)  $ filter ((== Workshop) . eventType . head) events
+      workDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((== Workshop) . eventType . head) events
       juliusifyDate date = "$.datepicker.parseDate('yymmdd', \"" <++> (Text.pack . show . getDateInt) date <++> "\")"
       slug event = addHtml (preEscapedText . eventSlug $ event)
   defaultLayout $ do
@@ -64,7 +65,6 @@ getEventsBetR viewRange fromDate toDate = do
                addScript $ StaticR js_jquery_ui_min_js
                addStylesheet $ StaticR css_jquery_ui_css
                addScript $ StaticR js_jquery_ui_datepicker_min_js
-               addJulius $(juliusFile "events")
                addWidget $(widgetFile "events")
 
 getEventR :: Int -> Int -> Text -> Handler RepHtml
@@ -288,10 +288,12 @@ getFormattedTime = (formatTime defaultTimeLocale " %l:%M %p on %A %b %e, %Y") . 
 getShortFormTime = formatTime defaultTimeLocale "%A, %B %e"
 getShortTime = formatTime defaultTimeLocale "%l:%M %p"
 
+numDaysInYear = 365
+
 getDayOffset :: Text -> Integer
 getDayOffset "week" = 7
 getDayOffset "month" = 30
-getDayOffset "year" = 365
+getDayOffset "year" = numDaysInYear
 getDayOffset _ = 7
 
 rangeIsWeek "week" = True
@@ -300,6 +302,12 @@ rangeIsMonth "month" = True
 rangeIsMonth _ = False
 rangeIsYear "year" = True
 rangeIsYear _ = False
+
+buildEvTypeFilter :: Text -> (Event -> Bool)
+buildEvTypeFilter "classes" = (== Class) . eventType
+buildEvTypeFilter "talks" = (== Talk) . eventType
+buildEvTypeFilter "workshops" = (== Workshop) . eventType
+buildEvTypeFilter _ = const True
 
 durationInHrs :: Event -> Int
 durationInHrs = round . eventDuration
