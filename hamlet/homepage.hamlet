@@ -1,8 +1,20 @@
-<div .cycle>
-  $forall project <- projects
-    <a href=@{ProjectR (projectName project)} .normallink>
-        <div .slide style="background-image: url(/static/uploads/#{projectFullImage project});background-repeat: no-repeat;width: 800px;height: 400px">
-            <h2 .projectslide>#{projectName project}
+<div>
+ <div #prevbutton>
+ <div #nextbutton>
+ <div #cycle>
+  <div #pane>
+   $forall project <- projects
+     <div #slide>
+         <div #slideLeftPane>
+            <a .normallink href=@{ProjectR (projectName project)}>
+              <h2 #slideTitle>#{projectName project}
+            <p #slideText>#{projectSlug project}
+            <a .normallink href=@{ProjectR (projectName project)}>
+              <span #moreInfo>More Info
+         <div #slideRightPane>
+            <a href=@{ProjectR (projectName project)}>
+              <img #slideRightImg src="/static/uploads/#{projectFullImage project}">
+ <div #pager>
 <hr>
 <table cellpadding="15">
   <tr>

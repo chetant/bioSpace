@@ -251,4 +251,3 @@ profileFormlet uid False p = renderTable $ Profile uid (maybe False id $ profile
                    <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic "Description" (preEscapedText . profileAbout <$> p)))
                    <*> aopt emailField "Email" (profileEmail <$> p)
                    <*> aopt urlField "Website" (profileWebsite <$> p)
-

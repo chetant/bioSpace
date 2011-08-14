@@ -19,6 +19,7 @@ Tag
 Project
     name Text Eq
     fullImage Text Update
+    slug Text default=""
     description Text
     UniqueProject name
 ProjectUser

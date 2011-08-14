@@ -30,12 +30,6 @@ div
         display: block
         margin: auto
         margin-top: 0px
-    .cycle
-        width: 500px
-        margin: 20px auto
-    .slide
-        position: relative
-        width: 100%
     .topbutton
         display:inline-block
     #slug
@@ -76,9 +70,6 @@ img
     .logo
         display: inline
         vertical-align: middle
-    .projectslide
-        position: relative
-        width: 100%
     .profilepic
         position: relative
         width: auto
@@ -109,8 +100,6 @@ h1
     color: #114d34
 h2
     color: #114d34
-    .projectslide
-       color: #ccc
 h3
     color: #114d34
 

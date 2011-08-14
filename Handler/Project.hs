@@ -175,9 +175,12 @@ postProjectDeleteR name = do
 projectFormlet project = renderDivs $ Project
                          <$> areq textField "Name" (projectName <$> project)
                          <*> imageFieldReq "Project Image" (projectFullImage <$> project)
+                         <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic slugFS (preEscapedText . projectSlug <$> project)))
                          <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic descFS (preEscapedText . projectDescription <$> project)))
     where descFS :: FieldSettings Text
           descFS = FieldSettings "Description" Nothing (Just "description") (Just "description")
+          slugFS :: FieldSettings Text
+          slugFS = FieldSettings "Slug" Nothing (Just "slug") (Just "slug")
 
 getProjectAndOwnersOr404 prjName = do
     mret <- runDB $ getBy $ UniqueProject prjName

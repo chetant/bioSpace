@@ -4,7 +4,7 @@
   <td style="margin:auto">
     $forall project <- projects
       <a href=@{ProjectR (projectName project)} .normallink>
-          <div .slide style="background-image: url(/static/uploads/#{projectFullImage project});background-repeat: no-repeat;width: 800px;height: 400px">
+          <div .slide style="background-image: url('/static/uploads/#{projectFullImage project}');background-repeat: no-repeat;width: 800px;height: 400px">
               <h2 .projectslide>#{projectName project}
   <td style="width:15%;text-align:right;vertical-align:text-top">
     $forall entry <- projects

@@ -1,10 +1,11 @@
 $(document).ready(function() {
-    $("div.cycle").cycle({
-	fx: 'scrollLeft',
-	speed: 1500,
+    $("div#pane").cycle({
+	fx: 'fade',
+	speed: 'fast',
 	timeout: 4000,
 	pause: 1,
-	random: 1
+	next: '#nextbutton',
+	prev: '#prevbutton',
+	//pager: '#pager'
     })
 });
-

@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, OverloadedStrings, ScopedTypeVariables #-}
 module Handler.Root where
 
 import Control.Applicative((<$>))
@@ -14,7 +14,7 @@ import BioSpace
 -- inclined, or create a single monolithic file.
 getRootR :: Handler RepHtml
 getRootR = do
-  projects <- map snd <$> (runDB $ selectList [] [] 0 0)
+  (projects :: [Project]) <- map snd <$> (runDB $ selectList [] [] 0 0)
   defaultLayout $ do
              h2id <- lift newIdent
              setTitle "Welcome to Genspace"

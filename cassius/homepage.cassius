@@ -1,2 +1,78 @@
 h1
     text-align: center
+div
+    #prevbutton
+        display: block
+        float: left
+        margin-left: 0px
+        margin-right: 11px
+        margin-top: 0px
+        margin-bottom: 0px
+        width: 19px
+        height: 400px
+        background: url('/static/img/prevButton.png') left center no-repeat
+    #prevbutton:hover
+        background: url('/static/img/prevButton.png') right center no-repeat;
+    #nextbutton
+        display: block
+        float: right
+        margin-left: 11px
+        margin-right: 0px
+        margin-top: 0px
+        margin-bottom: 0px
+        width: 19px
+        height: 400px
+        background: url('/static/img/nextButton.png') right center no-repeat
+    #nextbutton:hover
+        background: url('/static/img/nextButton.png') left center no-repeat;
+    #cycle
+        background-color: black
+        width: 869px
+        height: 400px
+        overflow-x: hidden
+        overflow-y: hidden
+    #pager
+        text-align: center
+    #pager a
+        background-color: black
+        color: white
+        text-decoration: none
+        margin: 0px 5px
+        padding: 3px 5px
+    .slide
+        background-repeat: no-repeat
+        width: 869px
+        height: 400px
+img
+    .projectslide
+        position: relative
+        width: 100%
+a
+    .activeSlide
+        font-weight: bold
+        font-size: 110%
+#slide
+    width: 869px
+    height: 400px
+    background-color: #333
+#slideLeftPane
+    float: left
+    height: 100%
+    width: 200px
+    text-align: center
+    vertical-align: text-top
+#slideRightPane
+    float: right
+    height: 100%
+    width: 669px
+#slideRightImg
+    width: 669px
+#slideTitle
+    color: white
+    text-decoration: none
+#slideText
+    color: #aaa
+#moreInfo
+    padding: 4px 10px
+    background-color: #ddd
+    border-radius: 6px
