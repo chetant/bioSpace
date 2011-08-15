@@ -4,6 +4,28 @@ $if isAdmin
 <table>
  <tr>
   <td>
+     <table style="margin:auto">
+         <tr>
+             <td>
+               <a href=@{PeopleFilterR "members"} .normallink>Members
+             <td>
+               /
+             <td>
+               <a href=@{PeopleFilterR "bods"} .normallink>Board of Directors
+             <td>
+               /
+             <td>
+               <a href=@{PeopleFilterR "advisors"} .normallink>Advisors
+             <td>
+               /
+             <td>
+               <a href=@{PeopleFilterR "interns"} .normallink>Interns
+             <td>
+               /
+             <td>
+               <a href=@{PeopleFilterR "all"} .normallink>All
+ <tr>
+  <td>
     <table style="margin:auto">
         $forall row <- pplMtx
             <tr>

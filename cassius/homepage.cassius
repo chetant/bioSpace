@@ -34,45 +34,42 @@ div
     #pager
         text-align: center
     #pager a
-        background-color: black
+        background-color: #333
         color: white
         text-decoration: none
+        font-size: 0.75em
         margin: 0px 5px
-        padding: 3px 5px
-    .slide
-        background-repeat: no-repeat
-        width: 869px
-        height: 400px
+        padding: 3px 15px
+    #pager a.activeSlide
+        font-weight: bold
+        font-size: 0.8em
+        background-color: #aaa
 img
     .projectslide
         position: relative
         width: 100%
-a
-    .activeSlide
-        font-weight: bold
-        font-size: 110%
-#slide
+.slide
     width: 869px
     height: 400px
     background-color: #333
-#slideLeftPane
+.slideLeftPane
     float: left
     height: 100%
     width: 200px
     text-align: center
     vertical-align: text-top
-#slideRightPane
+.slideRightPane
     float: right
     height: 100%
     width: 669px
-#slideRightImg
+.slideRightImg
     width: 669px
-#slideTitle
+.slideTitle
     color: white
     text-decoration: none
-#slideText
+.slideText
     color: #aaa
-#moreInfo
+.moreInfo
     padding: 4px 10px
     background-color: #ddd
     border-radius: 6px

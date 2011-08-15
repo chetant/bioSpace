@@ -3,6 +3,7 @@ module Handler.Profile where
 
 import Control.Applicative((<$>),(<*>))
 import Control.Monad(when, unless)
+import Data.Maybe(fromMaybe)
 import Data.Text(Text)
 import qualified Data.Text as Text
 import Data.Text.Lazy(toStrict)
@@ -17,9 +18,13 @@ import Handler.Commons
 import BioSpace
 
 getPeopleR :: Handler RepHtml
-getPeopleR = do
+getPeopleR = getPeopleFilterR "all"
+
+getPeopleFilterR :: Text -> Handler RepHtml
+getPeopleFilterR pType = do
   mu <- maybeAuthId
-  people <- map snd <$> (runDB $ selectList [] [] 0 0)
+  let pFilter = makeProfileFilter pType
+  people <- (filter pFilter . map snd) <$> (runDB $ selectList [] [] 0 0)
   let visPeople = filter profileIsVisible people
       numPeople = length visPeople
       numCols = 4 -- ((min 4) . round . sqrt . fromIntegral) numPeople
@@ -34,6 +39,7 @@ getPeopleR = do
                setTitle "Genspace - People"
                addWidget $(widgetFile "people")
 
+getPersonR :: Text -> Text -> Handler RepHtml
 getPersonR fName lName = do
   mret <- runDB $ getBy $ ProfileFullName fName lName
   case mret of
@@ -70,7 +76,7 @@ postPersonCreateR = do
     FormSuccess lclUser -> do
                       runDB $ do
                              uid <- addUser (username lclUser) (passwd lclUser)
-                             insert $ Profile uid False False Nothing Nothing 
+                             insert $ Profile uid False False Intern Nothing Nothing 
                                    "New" "User" "Something about the user" Nothing Nothing
                       redirect RedirectTemporary (PersonEditR "New" "User")
     FormFailure ts -> do
@@ -180,7 +186,7 @@ postAdminCreateR = do
     FormSuccess lclUser -> do
                       runDB $ do
                              uid <- addUser (username lclUser) (passwd lclUser)
-                             insert $ Profile uid True False Nothing Nothing 
+                             insert $ Profile uid True False Intern Nothing Nothing 
                                    "Admin" "Administrator" "overseer of the site!" Nothing Nothing
                       redirect RedirectTemporary RootR
     FormFailure ts -> do
@@ -233,21 +239,31 @@ userFormlet user = renderTable $ LclUser
 profileFormlet uid True p = renderTable $ Profile uid
                    <$> areq boolField "Admin Rights" (profileIsAdmin <$> p)
                    <*> areq boolField "Profile Visible" (profileIsVisible <$> p)
+                   <*> areq (selectField userTypes) "Type" (profileType <$> p)
                    <*> imageFieldOpt "Icon Image" (profileIconImage <$> p)
                    <*> imageFieldOpt "Full Image" (profileFullImage <$> p)
                    <*> areq textField "First Name" (profileFirstName <$> p)
                    <*> areq textField "Last Name" (profileLastName <$> p)
---                   <*> (unTextarea <$> areq textareaField "Description" (Textarea . profileAbout <$> p))
                    <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic "Description" (preEscapedText . profileAbout <$> p)))
                    <*> aopt emailField "Email" (profileEmail <$> p)
                    <*> aopt urlField "Website" (profileWebsite <$> p)
+    where userTypes = [("Member", Member), ("Board of Director",BoardOfDirector)
+                      ,("Intern", Intern), ("Advisor", Advisor), ("Sponsor", Sponsor)]
 
-profileFormlet uid False p = renderTable $ Profile uid (maybe False id $ profileIsAdmin <$> p) (maybe True id $ profileIsVisible <$> p)
+profileFormlet uid False p = renderTable $ Profile uid (fromMaybe False $ profileIsAdmin <$> p) 
+                                                       (fromMaybe True  $ profileIsVisible <$> p)
+                                                       (fromMaybe Intern $ profileType <$> p)
                    <$> imageFieldOpt "Icon Image" (profileIconImage <$> p)
                    <*> imageFieldOpt "Full Image" (profileFullImage <$> p)
                    <*> areq textField "First Name" (profileFirstName <$> p)
                    <*> areq textField "Last Name" (profileLastName <$> p)
-                   -- <*> (unTextarea <$> areq textareaField "Description" (Textarea . profileAbout <$> p))
                    <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic "Description" (preEscapedText . profileAbout <$> p)))
                    <*> aopt emailField "Email" (profileEmail <$> p)
                    <*> aopt urlField "Website" (profileWebsite <$> p)
+
+makeProfileFilter :: Text -> (Profile -> Bool)
+makeProfileFilter "members" = (\x -> (x == Member) || (x == BoardOfDirector)) . profileType
+makeProfileFilter "bods" = (== BoardOfDirector) . profileType
+makeProfileFilter "advisors" = (== Advisor) . profileType
+makeProfileFilter "interns" = (== Intern) . profileType
+makeProfileFilter _ = const True

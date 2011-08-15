@@ -81,37 +81,46 @@ getEventR dt tm title = do
 getEventCreateR :: Handler RepHtml
 getEventCreateR = do
   uId <- requireAuthId
-  ((res, form), enctype) <- runFormPost $ eventFormlet Nothing
-  defaultLayout $ do
-    setTitle "Create New Event"
-    let objName :: Text
-        objName = "Create Event"
-        actionName :: Text
-        actionName = "Create"
-    addWidget $(widgetFile "createEdit")
+  profile <- runDB $ snd <$> getBy404 (UniqueProfile uId)
+  case (isEditableType . profileType) profile of
+    True -> do
+        ((res, form), enctype) <- runFormPost $ eventFormlet Nothing
+        defaultLayout $ do
+                    setTitle "Create New Event"
+                    let objName :: Text
+                        objName = "Create Event"
+                        actionName :: Text
+                        actionName = "Create"
+                    addWidget $(widgetFile "createEdit")
+    False -> permissionDenied "Not Authorized"
 
 postEventCreateR :: Handler ()
 postEventCreateR = do
   uId <- requireAuthId
-  ((res, form), enctype) <- runFormPost $ eventFormlet Nothing
-  case res of
-    FormSuccess event_ -> do
-                       event <- runDB $ do
-                                  let event = getEvent event_ uId
-                                  eid <- insert event
-                                  insert $ EventUser eid uId
-                                  return event
-                       redirect RedirectTemporary (EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event))
-    FormFailure ts -> do
-                      setMessage . toHtml $ join ", " ts
-                      redirect RedirectTemporary EventCreateR
-    _ -> redirect RedirectTemporary EventCreateR
+  profile <- runDB $ snd <$> getBy404 (UniqueProfile uId)
+  case (isEditableType . profileType) profile of
+    True -> do
+      ((res, form), enctype) <- runFormPost $ eventFormlet Nothing
+      case res of
+        FormSuccess event_ -> do
+                     event <- runDB $ do
+                                let event = getEvent event_ uId
+                                eid <- insert event
+                                insert $ EventUser eid uId
+                                return event
+                     redirect RedirectTemporary (EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event))
+        FormFailure ts -> do
+                     setMessage . toHtml $ join ", " ts
+                     redirect RedirectTemporary EventCreateR
+        _ -> redirect RedirectTemporary EventCreateR
+    False -> permissionDenied "Not Authorized"
 
 getEventUserPermissionsR :: Int -> Int -> Text -> Handler RepHtml
 getEventUserPermissionsR dt tm title = do
   uId <- requireAuthId
   (evid, event, owners, _) <- getEventAndOwnersOr404 dt tm title
-  allps <- runDB (filter ((/= uId) . profileUser) . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)
+  let isValidUser p = (profileUser p /= uId) && (isEditableType . profileType $ p)
+  allps <- runDB (filter isValidUser . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)
   let names = map (fromString . Text.unpack . profileFullName) allps
       auths = map (Just . (`elem` owners) . profileUser) allps
       allUids = map profileUser allps
@@ -125,7 +134,8 @@ postEventUserPermissionsR :: Int -> Int -> Text -> Handler ()
 postEventUserPermissionsR dt tm title = do
   uId <- requireAuthId
   (evid, event, owners, _) <- getEventAndOwnersOr404 dt tm title
-  allps <- runDB (filter ((/= uId) . profileUser) . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)
+  let isValidUser p = (profileUser p /= uId) && (isEditableType . profileType $ p)
+  allps <- runDB (filter isValidUser . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)
   let names = map (fromString . Text.unpack . profileFullName) allps
       auths = map (Just . (`elem` owners) . profileUser) allps
       allUids = map profileUser allps
@@ -262,9 +272,11 @@ getEventAndOwnersOr404 dt tm title = do
     mret <- runDB $ getBy $ UniqueEvent date time title
     case mret of
       Just (evid, event) -> do
-                os <- runDB $ (map snd) <$> selectList [EventUserEventEq evid] [] 0 0
-                let owners = map eventUserUser os
-                ownProfiles <- runDB $ mapM (((snd <$>)<$>) . getBy . UniqueProfile) owners
+                owners_ <- getOwners evid
+                ownProfiles_ <- runDB $ mapM (((snd <$>)<$>) . getBy . UniqueProfile) owners_
+                let (owners, ownProfiles) = unzip $ 
+                                            filter (isEditableType . profileType . fromJust . snd) $ 
+                                            filter (isJust . snd) $ zip owners_ ownProfiles_
                 return (evid, event, owners, ownProfiles)
       _ -> notFound
 
@@ -304,7 +316,7 @@ rangeIsYear "year" = True
 rangeIsYear _ = False
 
 buildEvTypeFilter :: Text -> (Event -> Bool)
-buildEvTypeFilter "classes" = (== Class) . eventType
+buildEvTypeFilter "courses" = (== Class) . eventType
 buildEvTypeFilter "talks" = (== Talk) . eventType
 buildEvTypeFilter "workshops" = (== Workshop) . eventType
 buildEvTypeFilter _ = const True

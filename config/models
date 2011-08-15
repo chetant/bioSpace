@@ -2,6 +2,7 @@ Profile
     user UserId Eq
     isAdmin Bool Update Eq default=False
     isVisible Bool Update Eq default=False
+    type UserType Eq default=Member
     iconImage Text Update Maybe
     fullImage Text Update Maybe
     firstName Text Update 

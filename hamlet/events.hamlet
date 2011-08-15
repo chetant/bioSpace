@@ -26,8 +26,8 @@
     <table style="width:100%">
      <tr>
       <td .highlighted_classes>
-       <a .nodec href=@{EventsViewR "classes"}>
-        Classes
+       <a .nodec href=@{EventsViewR "courses"}>
+        Courses
       <td .highlighted_talks>
        <a .nodec href=@{EventsViewR "talks"}>
         Talks

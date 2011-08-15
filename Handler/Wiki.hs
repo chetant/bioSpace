@@ -3,6 +3,7 @@ module Handler.Wiki where
 
 import Control.Applicative((<$>),(<*>))
 import Control.Monad(when, unless)
+import Data.Maybe(isJust, fromJust)
 import Data.Text(Text)
 import qualified Data.Text as Text
 import Data.Text.Lazy(toStrict)
@@ -30,35 +31,44 @@ getPageR name = do
 getPageCreateR :: Handler RepHtml
 getPageCreateR = do
   uId <- requireAuthId
-  ((res, form), enctype) <- runFormPost $ pageFormlet Nothing
-  defaultLayout $ do
-    setTitle "Create New Page"
-    let objName :: Text
-        objName = "Create Page"
-        actionName :: Text
-        actionName = "Create"
-    addWidget $(widgetFile "createEdit")
+  profile <- runDB $ snd <$> getBy404 (UniqueProfile uId)
+  case (isEditableType . profileType) profile of
+    True -> do
+      ((res, form), enctype) <- runFormPost $ pageFormlet Nothing
+      defaultLayout $ do
+                   setTitle "Create New Page"
+                   let objName :: Text
+                       objName = "Create Page"
+                       actionName :: Text
+                       actionName = "Create"
+                   addWidget $(widgetFile "createEdit")
+    False -> permissionDenied "Not Authorized"
 
 postPageCreateR :: Handler ()
 postPageCreateR = do
   uId <- requireAuthId
-  ((res, form), enctype) <- runFormPost $ pageFormlet Nothing
-  case res of
-    FormSuccess page -> do
-                       runDB $ do
-                             pgid <- insert page
-                             insert $ WikiPageUser pgid uId
-                       redirect RedirectTemporary (PageR (wikiPageName page))
-    FormFailure ts -> do
-                      setMessage . toHtml $ join ", " ts
-                      redirect RedirectTemporary PageCreateR
-    _ -> redirect RedirectTemporary PageCreateR
+  profile <- runDB $ snd <$> getBy404 (UniqueProfile uId)
+  case (isEditableType . profileType) profile of
+    True -> do
+      ((res, form), enctype) <- runFormPost $ pageFormlet Nothing
+      case res of
+        FormSuccess page -> do
+                    runDB $ do
+                      pgid <- insert page
+                      insert $ WikiPageUser pgid uId
+                    redirect RedirectTemporary (PageR (wikiPageName page))
+        FormFailure ts -> do
+                    setMessage . toHtml $ join ", " ts
+                    redirect RedirectTemporary PageCreateR
+        _ -> redirect RedirectTemporary PageCreateR
+    False -> permissionDenied "Not Authorized"
 
 getPageUserPermissionsR :: Text -> Handler RepHtml
 getPageUserPermissionsR name = do
   uId <- requireAuthId
   (pgid, page, owners, _) <- getPageAndOwnersOr404 name
-  allps <- runDB (filter ((/= uId) . profileUser) . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)
+  let isValidUser p = (profileUser p /= uId) && (isEditableType . profileType $ p)
+  allps <- runDB (filter isValidUser . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)
   let names = map (fromString . Text.unpack . profileFullName) allps
       auths = map (Just . (`elem` owners) . profileUser) allps
       allUids = map profileUser allps
@@ -72,7 +82,8 @@ postPageUserPermissionsR :: Text -> Handler ()
 postPageUserPermissionsR name = do
   uId <- requireAuthId
   (pgid, page, owners, _) <- getPageAndOwnersOr404 name
-  allps <- runDB (filter ((/= uId) . profileUser) . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)
+  let isValidUser p = (profileUser p /= uId) && (isEditableType . profileType $ p)
+  allps <- runDB (filter isValidUser . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)
   let names = map (fromString . Text.unpack . profileFullName) allps
       auths = map (Just . (`elem` owners) . profileUser) allps
       allUids = map profileUser allps
@@ -173,9 +184,11 @@ getPageAndOwnersOr404 pgName = do
     mret <- runDB $ getBy $ UniqueWikiPage pgName
     case mret of
       Just (pgid, page) -> do
-                os <- runDB $ (map snd) <$> selectList [WikiPageUserPageEq pgid] [] 0 0
-                let owners = map wikiPageUserUser os
-                ownProfiles <- runDB $ mapM (((snd <$>)<$>) . getBy . UniqueProfile) owners
+                owners_ <- getOwners pgid
+                ownProfiles_ <- runDB $ mapM (((snd <$>)<$>) . getBy . UniqueProfile) owners_
+                let (owners, ownProfiles) = unzip $ 
+                                            filter (isEditableType . profileType . fromJust . snd) $ 
+                                            filter (isJust . snd) $ zip owners_ ownProfiles_
                 return (pgid, page, owners, ownProfiles)
       Nothing -> notFound
 

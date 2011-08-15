@@ -4,16 +4,16 @@
  <div #cycle>
   <div #pane>
    $forall project <- projects
-     <div #slide>
-         <div #slideLeftPane>
+     <div .slide>
+         <div .slideLeftPane>
             <a .normallink href=@{ProjectR (projectName project)}>
-              <h2 #slideTitle>#{projectName project}
-            <p #slideText>^{addHtml (preEscapedText (projectSlug project))}
+              <h2 .slideTitle>#{projectName project}
+            <p .slideText>^{addHtml (preEscapedText (projectSlug project))}
             <a .normallink href=@{ProjectR (projectName project)}>
-              <span #moreInfo>More Info
-         <div #slideRightPane>
+              <span .moreInfo>More Info
+         <div .slideRightPane>
             <a href=@{ProjectR (projectName project)}>
-              <img #slideRightImg src="/static/uploads/#{projectFullImage project}">
+              <img .slideRightImg src="/static/uploads/#{projectFullImage project}">
  <div #pager>
 <hr>
 <table style="text-align: center" cellpadding="15">

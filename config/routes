@@ -11,6 +11,7 @@
 /setup AdminCreateR GET POST
 
 /people PeopleR GET
+/people/#Text PeopleFilterR GET
 /person/#Text/#Text PersonR GET
 /create/person PersonCreateR GET POST
 /edit/person/#Text/#Text PersonEditR GET POST

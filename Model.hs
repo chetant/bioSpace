@@ -13,6 +13,10 @@ data EventType = Class | Talk | Workshop
                  deriving (Show, Read, Eq)
 derivePersistField "EventType"
 
+data UserType = Member | BoardOfDirector | Intern | Advisor | Sponsor
+                deriving (Show, Read, Eq)
+derivePersistField "UserType"
+
 -- You can define all of your database entities in the entities file.
 -- You can find more information on persistent and how to declare entities
 -- at:

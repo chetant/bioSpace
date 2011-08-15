@@ -3,6 +3,7 @@ module Handler.Project where
 
 import Control.Applicative((<$>),(<*>))
 import Control.Monad(when, unless)
+import Data.Maybe(isJust, fromJust)
 import Data.Text(Text)
 import qualified Data.Text as Text
 import Data.Text.Lazy(toStrict)
@@ -39,35 +40,44 @@ getProjectR name = do
 getProjectCreateR :: Handler RepHtml
 getProjectCreateR = do
   uId <- requireAuthId
-  ((res, form), enctype) <- runFormPost $ projectFormlet Nothing
-  defaultLayout $ do
-    setTitle "Create New Project"
-    let objName :: Text
-        objName = "Create Project"
-        actionName :: Text
-        actionName = "Create"
-    addWidget $(widgetFile "createEdit")
+  profile <- runDB $ snd <$> getBy404 (UniqueProfile uId)
+  case (isEditableType . profileType) profile of
+    True -> do
+      ((res, form), enctype) <- runFormPost $ projectFormlet Nothing
+      defaultLayout $ do
+                      setTitle "Create New Project"
+                      let objName :: Text
+                          objName = "Create Project"
+                          actionName :: Text
+                          actionName = "Create"
+                      addWidget $(widgetFile "createEdit")
+    False -> permissionDenied "Not Authorized"
 
 postProjectCreateR :: Handler ()
 postProjectCreateR = do
   uId <- requireAuthId
-  ((res, form), enctype) <- runFormPost $ projectFormlet Nothing
-  case res of
-    FormSuccess project -> do
+  profile <- runDB $ snd <$> getBy404 (UniqueProfile uId)
+  case (isEditableType . profileType) profile of
+    True -> do
+      ((res, form), enctype) <- runFormPost $ projectFormlet Nothing
+      case res of
+        FormSuccess project -> do
                        runDB $ do
-                             prid <- insert project
-                             insert $ ProjectUser prid uId
+                         prid <- insert project
+                         insert $ ProjectUser prid uId
                        redirect RedirectTemporary (ProjectR (projectName project))
-    FormFailure ts -> do
-                      setMessage . toHtml $ join ", " ts
-                      redirect RedirectTemporary ProjectCreateR
-    _ -> redirect RedirectTemporary ProjectCreateR
+        FormFailure ts -> do
+                       setMessage . toHtml $ join ", " ts
+                       redirect RedirectTemporary ProjectCreateR
+        _ -> redirect RedirectTemporary ProjectCreateR
+    False -> permissionDenied "Not Authorized"
 
 getProjectUserPermissionsR :: Text -> Handler RepHtml
 getProjectUserPermissionsR name = do
   uId <- requireAuthId
   (prid, project, owners, _) <- getProjectAndOwnersOr404 name
-  allps <- runDB (filter ((/= uId) . profileUser) . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)
+  let isValidUser p = (profileUser p /= uId) && (isEditableType . profileType $ p)
+  allps <- runDB (filter isValidUser . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)
   let names = map (fromString . Text.unpack . profileFullName) allps
       auths = map (Just . (`elem` owners) . profileUser) allps
       allUids = map profileUser allps
@@ -81,7 +91,8 @@ postProjectUserPermissionsR :: Text -> Handler ()
 postProjectUserPermissionsR name = do
   uId <- requireAuthId
   (prid, project, owners, _) <- getProjectAndOwnersOr404 name
-  allps <- runDB (filter ((/= uId) . profileUser) . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)
+  let isValidUser p = (profileUser p /= uId) && (isEditableType . profileType $ p)
+  allps <- runDB (filter isValidUser . map snd <$> selectList [ProfileIsAdminEq False] [] 0 0)
   let names = map (fromString . Text.unpack . profileFullName) allps
       auths = map (Just . (`elem` owners) . profileUser) allps
       allUids = map profileUser allps
@@ -186,9 +197,11 @@ getProjectAndOwnersOr404 prjName = do
     mret <- runDB $ getBy $ UniqueProject prjName
     case mret of
       Just (prid, project) -> do
-                os <- runDB $ (map snd) <$> selectList [ProjectUserProjectEq prid] [] 0 0
-                let owners = map projectUserUser os
-                ownProfiles <- runDB $ mapM (((snd <$>)<$>) . getBy . UniqueProfile) owners
+                owners_ <- getOwners prid
+                ownProfiles_ <- runDB $ mapM (((snd <$>)<$>) . getBy . UniqueProfile) owners_
+                let (owners, ownProfiles) = unzip $ 
+                                            filter (isEditableType . profileType . fromJust . snd) $ 
+                                            filter (isJust . snd) $ zip owners_ ownProfiles_
                 return (prid, project, owners, ownProfiles)
       _ -> notFound
 
