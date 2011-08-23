@@ -13,7 +13,7 @@ data EventType = Class | Talk | Workshop
                  deriving (Show, Read, Eq)
 derivePersistField "EventType"
 
-data UserType = Member | BoardOfDirector | Intern | Advisor | Sponsor
+data UserType = CoFounder | Member | Collaborator | Student | Presenter
                 deriving (Show, Read, Eq)
 derivePersistField "UserType"
 

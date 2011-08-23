@@ -7,19 +7,23 @@ $if isAdmin
      <table style="margin:auto">
          <tr>
              <td>
+               <a href=@{PeopleFilterR "cofounders"} .normallink>Co-Founders
+             <td>
+               /
+             <td>
                <a href=@{PeopleFilterR "members"} .normallink>Members
              <td>
                /
              <td>
-               <a href=@{PeopleFilterR "bods"} .normallink>Board of Directors
+               <a href=@{PeopleFilterR "collaborators"} .normallink>Collaborators
              <td>
                /
              <td>
-               <a href=@{PeopleFilterR "advisors"} .normallink>Advisors
+               <a href=@{PeopleFilterR "students"} .normallink>Students
              <td>
                /
              <td>
-               <a href=@{PeopleFilterR "interns"} .normallink>Interns
+               <a href=@{PeopleFilterR "presenters"} .normallink>Presenters
              <td>
                /
              <td>

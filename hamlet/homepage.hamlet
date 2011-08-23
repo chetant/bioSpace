@@ -38,13 +38,21 @@
         <h3>Directions
         <iframe width="200" height="200" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.com/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=33+Flatbush+Avenue,+New+York,+NY&amp;aq=0&amp;sll=40.768697,-73.991818&amp;sspn=0.054343,0.111322&amp;ie=UTF8&amp;hq=&amp;hnear=33+Flatbush+Ave,+Brooklyn,+Kings,+New+York+11217&amp;ll=40.687537,-73.979874&amp;spn=0.013017,0.01708&amp;z=14&amp;iwloc=A&amp;output=embed"></iframe><br /><small><a href="http://maps.google.com/maps?f=q&amp;source=embed&amp;hl=en&amp;geocode=&amp;q=33+Flatbush+Avenue,+New+York,+NY&amp;aq=0&amp;sll=40.768697,-73.991818&amp;sspn=0.054343,0.111322&amp;ie=UTF8&amp;hq=&amp;hnear=33+Flatbush+Ave,+Brooklyn,+Kings,+New+York+11217&amp;ll=40.687537,-73.979874&amp;spn=0.013017,0.01708&amp;z=14&amp;iwloc=A" style="color:#0000FF;text-align:left">View Larger Map</a></small>
     <td valign="top">
-        <h3>Support
-        Donate to Genspace!
-        <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
-          <input type="hidden" name="cmd" value="_s-xclick">
-          <input type="hidden" name="hosted_button_id" value="A4X8389J98F3E">
-          <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-          <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+        <table border=0 style="background-color: #fff; padding: 5px;" cellspacing=0>
+          <tr>
+           <td>
+            <img src="http://groups.google.com/intl/en/images/logos/groups_logo_sm.gif" height=30 width=140 alt="Google Groups">
+          <tr>
+           <td style="padding-left: 5px">
+            <b>Subscribe to GenspaceNYC
+          <form action="http://groups.google.com/group/genspace-announce/boxsubscribe">
+           <tr>
+            <td style="padding-left: 5px;">
+              Email: <input type=text name=email>
+              <input type=submit name="sub" value="Subscribe">
+          <tr>
+           <td align=right>
+            <a href="http://groups.google.com/group/genspace-announce">Visit this group
     <td valign="top">
         <h3>Latest Snaps
             <object width="400" height="300">

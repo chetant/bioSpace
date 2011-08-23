@@ -53,5 +53,5 @@ dateTimeField = jqueryDayTimeField
 
 isEditableType :: UserType -> Bool
 isEditableType Member = True
-isEditableType BoardOfDirector = True
+isEditableType CoFounder = True
 isEditableType _ = False

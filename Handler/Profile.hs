@@ -76,7 +76,7 @@ postPersonCreateR = do
     FormSuccess lclUser -> do
                       runDB $ do
                              uid <- addUser (username lclUser) (passwd lclUser)
-                             insert $ Profile uid False False Intern Nothing Nothing 
+                             insert $ Profile uid False False Student Nothing Nothing 
                                    "New" "User" "Something about the user" Nothing Nothing
                       redirect RedirectTemporary (PersonEditR "New" "User")
     FormFailure ts -> do
@@ -186,7 +186,7 @@ postAdminCreateR = do
     FormSuccess lclUser -> do
                       runDB $ do
                              uid <- addUser (username lclUser) (passwd lclUser)
-                             insert $ Profile uid True False Intern Nothing Nothing 
+                             insert $ Profile uid True False Student Nothing Nothing 
                                    "Admin" "Administrator" "overseer of the site!" Nothing Nothing
                       redirect RedirectTemporary RootR
     FormFailure ts -> do
@@ -247,12 +247,13 @@ profileFormlet uid True p = renderTable $ Profile uid
                    <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic "Description" (preEscapedText . profileAbout <$> p)))
                    <*> aopt emailField "Email" (profileEmail <$> p)
                    <*> aopt urlField "Website" (profileWebsite <$> p)
-    where userTypes = [("Member", Member), ("Board of Director",BoardOfDirector)
-                      ,("Intern", Intern), ("Advisor", Advisor), ("Sponsor", Sponsor)]
+    where userTypes = [("Member", Member), ("Co-Founder",CoFounder)
+                      ,("Collaborator", Collaborator), ("Student",Student)
+                      ,("Presenter", Presenter)]
 
 profileFormlet uid False p = renderTable $ Profile uid (fromMaybe False $ profileIsAdmin <$> p) 
                                                        (fromMaybe True  $ profileIsVisible <$> p)
-                                                       (fromMaybe Intern $ profileType <$> p)
+                                                       (fromMaybe Student $ profileType <$> p)
                    <$> imageFieldOpt "Icon Image" (profileIconImage <$> p)
                    <*> imageFieldOpt "Full Image" (profileFullImage <$> p)
                    <*> areq textField "First Name" (profileFirstName <$> p)
@@ -262,8 +263,9 @@ profileFormlet uid False p = renderTable $ Profile uid (fromMaybe False $ profil
                    <*> aopt urlField "Website" (profileWebsite <$> p)
 
 makeProfileFilter :: Text -> (Profile -> Bool)
-makeProfileFilter "members" = (\x -> (x == Member) || (x == BoardOfDirector)) . profileType
-makeProfileFilter "bods" = (== BoardOfDirector) . profileType
-makeProfileFilter "advisors" = (== Advisor) . profileType
-makeProfileFilter "interns" = (== Intern) . profileType
+makeProfileFilter "cofounders"   = ( == CoFounder) . profileType
+makeProfileFilter "members"       = ( == Member) . profileType
+makeProfileFilter "collaborators" = (== Collaborator) . profileType
+makeProfileFilter "students"      = (== Student) . profileType
+makeProfileFilter "presenters"    = (== Presenter) . profileType
 makeProfileFilter _ = const True
