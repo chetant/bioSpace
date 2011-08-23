@@ -236,7 +236,7 @@ userFormlet user = renderTable $ LclUser
                    <$> areq textField "Username" (username <$> user)
                    <*> areq passwordField "Password" (passwd <$> user)
 
-profileFormlet uid True p = renderTable $ Profile uid
+profileFormlet uid True p = renderDivs $ Profile uid
                    <$> areq boolField "Admin Rights" (profileIsAdmin <$> p)
                    <*> areq boolField "Profile Visible" (profileIsVisible <$> p)
                    <*> areq (selectField userTypes) "Type" (profileType <$> p)
@@ -244,12 +244,14 @@ profileFormlet uid True p = renderTable $ Profile uid
                    <*> imageFieldOpt "Full Image" (profileFullImage <$> p)
                    <*> areq textField "First Name" (profileFirstName <$> p)
                    <*> areq textField "Last Name" (profileLastName <$> p)
-                   <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic "Description" (preEscapedText . profileAbout <$> p)))
+                   <*> (toStrict . renderHtmlText <$> (areq htmlFieldNic descFS (preEscapedText . profileAbout <$> p)))
                    <*> aopt emailField "Email" (profileEmail <$> p)
                    <*> aopt urlField "Website" (profileWebsite <$> p)
     where userTypes = [("Member", Member), ("Co-Founder",CoFounder)
                       ,("Collaborator", Collaborator), ("Student",Student)
                       ,("Presenter", Presenter)]
+          descFS :: FieldSettings Text
+          descFS = FieldSettings "Description" Nothing (Just "description") (Just "description")
 
 profileFormlet uid False p = renderTable $ Profile uid (fromMaybe False $ profileIsAdmin <$> p) 
                                                        (fromMaybe True  $ profileIsVisible <$> p)
