@@ -3,21 +3,28 @@
     <a href=@{EventsR} .headlink> Events
     \ > #{eventTitle event}
 #{getFormattedTime event}
-<hr>
-$if canEdit
-    <div>
-        <a href=@{EventEditR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>Edit Event
-    <div>
-        <a href=@{EventDeleteR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>Delete Event
-<h2> #{eventTitle event}
-<div>Duration: approx. #{eventDuration event} hours
-<div>Organizers: #
-    $forall p <- ownProfiles
-        $maybe p' <- p
-            <a href=@{PersonR (profileFirstName p') (profileLastName p')}>
-                #{profileFullName p'}
-            \   #
-    $if canEdit
-        <a href=@{EventUserPermissionsR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>Add/Change Organizers
-<hr>
-<div>^{description}
+<table width="100%">
+ <tr>
+  <td style="margin:auto;vertical-align:top">
+   <hr>
+   $if canEdit
+       <div>
+           <a href=@{EventEditR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>Edit Event
+       <div>
+           <a href=@{EventDeleteR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>Delete Event
+   <h2> #{eventTitle event}
+   <div>Duration: approx. #{eventDuration event} hours
+   <div>Organizers: #
+       $forall p <- ownProfiles
+           $maybe p' <- p
+               <a href=@{PersonR (profileFirstName p') (profileLastName p')}>
+                   #{profileFullName p'}
+               \   #
+       $if canEdit
+           <a href=@{EventUserPermissionsR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>Add/Change Organizers
+   <hr>
+   <div>^{description}
+  <td style="width:15%;vertical-align:top">
+    <div .inline #calendar>
+    <a .normallink href=@{EventsR }>
+      \< Back to all events

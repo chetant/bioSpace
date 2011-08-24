@@ -46,20 +46,30 @@ getEventsBetR filterType fromDate toDate = do
   mu <- maybeAuthId
   isAdmin <- maybe (return False) checkAdmin mu
   currTime <- utcToLocalTime <$> liftIO getCurrentTimeZone <*> liftIO getCurrentTime
-  let startDay = dateFromYYYYMMDD fromDate
+  let calStartDay = localDay currTime
+      calEndDay = ((addDays numDaysInYear) . localDay) currTime
+      startDay = dateFromYYYYMMDD fromDate
       endDay = dateFromYYYYMMDD toDate
       toEntry (_, e) = (eventDate e, [e])
       isAuthorized (_,e) = (isJust mu) || (eventIsPublic e)
       evFilter = (buildEvTypeFilter filterType) . snd
-  eventsList <- ((map toEntry) . (filter evFilter) . (filter isAuthorized)) <$> (runDB $ selectList [EventDateGe startDay, EventDateLe endDay] [] 0 0)
-  let events :: [[Event]]
-      events = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty eventsList
-      talkDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((== Talk) . eventType . head) events
-      classDaysStr = join "," $ map (juliusifyDate . eventDate . head) $ filter ((== Class) . eventType . head) events
-      workDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((== Workshop) . eventType . head) events
-      juliusifyDate date = "$.datepicker.parseDate('yymmdd', \"" <++> (Text.pack . show . getDateInt) date <++> "\")"
-      slug event = addHtml (preEscapedText . eventSlug $ event)
-  defaultLayout $ do
+  allEventsList <- (filter evFilter . filter isAuthorized) <$> (runDB $ selectList [EventDateGe calStartDay, EventDateLe calEndDay] [] 0 0)
+  let eventsList = map toEntry $ 
+                   filter 
+                   (\x -> (((eventDate . snd) x `diffDays` startDay) >= 0) && (((eventDate . snd) x `diffDays` endDay) <= 0))
+                   allEventsList
+  case eventsList of
+    [(_,[event])] -> redirect RedirectTemporary (EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event))
+    otherwise -> do
+      let events :: [[Event]]
+          events = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty eventsList
+          allEvents = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty $ map toEntry allEventsList
+          talkDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((== Talk) . eventType . head) allEvents
+          classDaysStr = join "," $ map (juliusifyDate . eventDate . head) $ filter ((== Class) . eventType . head) allEvents
+          workDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((== Workshop) . eventType . head) allEvents
+          juliusifyDate date = "$.datepicker.parseDate('yymmdd', \"" <++> (Text.pack . show . getDateInt) date <++> "\")"
+          slug event = addHtml (preEscapedText . eventSlug $ event)
+      defaultLayout $ do
                setTitle "Genspace - Events"
                addScript $ StaticR js_jquery_min_js
                addScript $ StaticR js_jquery_ui_min_js
@@ -73,8 +83,25 @@ getEventR dt tm title = do
   mu <- maybeAuthId
   isAdmin <- maybe (return False) checkAdmin mu
   let canEdit = maybe isAdmin (`elem` owners) mu
+  currTime <- utcToLocalTime <$> liftIO getCurrentTimeZone <*> liftIO getCurrentTime
+  let calStartDay = localDay currTime
+      calEndDay = ((addDays numDaysInYear) . localDay) currTime
+      fromDate = getDateInt calStartDay
+      toDate = getDateInt calStartDay
+      isAuthorized (_,e) = (isJust mu) || (eventIsPublic e)
+      toEntry (_, e) = (eventDate e, [e])
+  allEventsList <- filter isAuthorized <$> (runDB $ selectList [EventDateGe calStartDay, EventDateLe calEndDay] [] 0 0)
+  let allEvents = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty $ map toEntry allEventsList
+      talkDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((== Talk) . eventType . head) allEvents
+      classDaysStr = join "," $ map (juliusifyDate . eventDate . head) $ filter ((== Class) . eventType . head) allEvents
+      workDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((== Workshop) . eventType . head) allEvents
+      juliusifyDate date = "$.datepicker.parseDate('yymmdd', \"" <++> (Text.pack . show . getDateInt) date <++> "\")"
   defaultLayout $ do
     setTitle . toHtml $ "Genspace - Event - " <++> (eventTitle event)
+    addScript $ StaticR js_jquery_min_js
+    addScript $ StaticR js_jquery_ui_min_js
+    addStylesheet $ StaticR css_jquery_ui_css
+    addScript $ StaticR js_jquery_ui_datepicker_min_js
     let description = addHtml (preEscapedText . eventDescription $ event)
     addWidget $(widgetFile "event")
 

@@ -23,20 +23,43 @@
         <hr>
   <td style="width:15%;vertical-align:top">
     <div .inline #calendar>
+    $if ((==) fromDate toDate)
+      <a .normallink href=@{EventsR }>
+        \< Back to all events
     <table style="width:100%">
      <tr>
-      <td .highlighted_classes>
-       <a .nodec href=@{EventsViewR "courses"}>
+
+      $if ((/=) filterType "courses")
+       <td .highlighted_classes>
+        <a .nodec href=@{EventsViewR "courses"}>
+         Courses
+      $else
+       <td .selected>
         Courses
-      <td .highlighted_talks>
-       <a .nodec href=@{EventsViewR "talks"}>
+
+      $if ((/=) filterType "talks")
+       <td .highlighted_talks>
+        <a .nodec href=@{EventsViewR "talks"}>
+         Talks
+      $else
+       <td .selected>
         Talks
-      <td .highlighted_workshops>
-       <a .nodec href=@{EventsViewR "workshops"}>
-        Workshops
+
+      $if ((/=) filterType "workshops")
+       <td .highlighted_workshops>
+        <a .nodec href=@{EventsViewR "workshops"}>
+         Workshops
+      $else
+       <td .selected>
+         Workshops
+
      <tr style="width:100%">
       <td>
-      <td .highlighted_all>
-       <a .nodec href=@{EventsViewR "all"}>
+      $if ((/=) filterType "all")
+       <td .highlighted_all>
+        <a .nodec href=@{EventsViewR "all"}>
+         All
+      $else
+       <td .selected>
         All
       <td>
