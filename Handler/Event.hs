@@ -254,11 +254,11 @@ postEventDeleteR dt tm title = do
 ----- Helper functions ----
 ---------------------------
 
-data Event_ = Event_ Text UTCTime EventType (Maybe Text) Text Text Bool Double (Maybe Double) deriving (Show, Eq)
+data Event_ = Event_ Text UTCTime EventType (Maybe Text) Text Text Bool Double (Maybe Double) (Maybe Text) deriving (Show, Eq)
 
-getEvent (Event_ title datetime etype mimg slug desc isPublic duration mprice) uId = 
+getEvent (Event_ title datetime etype mimg slug desc isPublic duration mprice mlocation) uId = 
     Event (utctDay datetime) (timeToTimeOfDay . utctDayTime $ datetime)
-          etype isPublic title mimg slug desc duration mprice uId
+          etype isPublic title mimg slug desc duration mprice mlocation uId
 
 eventDateTime ev = UTCTime (eventDate ev) (timeOfDayToTime $ eventTime ev)
 eventDateLocalTime ev = LocalTime (eventDate ev) (eventTime ev)
@@ -276,6 +276,7 @@ eventFormlet event = renderDivs $ Event_
                          <*> areq boolField "Event Is Public?" (eventIsPublic <$> event)
                          <*> areq doubleField "Duration(hours)" (eventDuration <$> event)
                          <*> aopt doubleField "Price" (eventPrice <$> event)
+                         <*> aopt textField "Location" (eventLocation <$> event)
     where descFS :: FieldSettings Text
           descFS = FieldSettings "Description" Nothing (Just "description") (Just "description")
           slugFS :: FieldSettings Text

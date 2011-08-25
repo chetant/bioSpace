@@ -52,6 +52,7 @@ Event
     description Text
     duration Double default=1
     price Double Maybe
+    location Text Maybe
     organizer UserId Eq
     UniqueEvent date time title
 EventTag

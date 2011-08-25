@@ -14,10 +14,17 @@
            <a href=@{EventDeleteR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>Delete Event
    <h2> #{eventTitle event}
    <div>Duration: approx. #{eventDuration event} hours
+   $maybe location <- eventLocation event
+       <div>Location: #
+           <a .normallink target="_blank" href="http://maps.google.com/maps?q=#{location}&hl=en&vpsrc=0&z=14">
+               #{location}
+   $nothing
+       <div>Location: #
+           <a .normallink href=@{PageR "Contact Us"}>Genspace HQ
    <div>Organizers: #
        $forall p <- ownProfiles
            $maybe p' <- p
-               <a href=@{PersonR (profileFirstName p') (profileLastName p')}>
+               <a .normallink href=@{PersonR (profileFirstName p') (profileLastName p')}>
                    #{profileFullName p'}
                \   #
        $if canEdit
