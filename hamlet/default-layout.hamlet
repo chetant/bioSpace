@@ -25,25 +25,25 @@
                     <div>
                       <ul .mainbar>
                           <li .entry>
-                               <a .entry href=/page/About >About
+                               <a .entry href=@{PageR "About"} >About
                           <li .separator>|
                           <li .entry>
-                               <a .entry href=/people >People
+                               <a .entry href=@{PeopleR} >People
                           <li .separator>|
                           <li .entry>
-                               <a .entry href=/projects >Projects
+                               <a .entry href=@{ProjectsR} >Projects
                           <li .separator>|
                           <li .entry>
-                               <a .entry href=/events >Events
+                               <a .entry href=@{EventsR} >Events
                           <li .separator>|
                           <li .entry>
-                               <a .entry href=/page/Courses >Courses
+                               <a .entry href=@{EventsViewR "courses"} >Courses
                           <li .separator>|
                           <li .entry>
-                               <a .entry href=/page/Safety >Safety
+                               <a .entry href=@{PageR "Safety"} >Safety
                           <li .separator>|
                           <li .entry>
-                               <a .entry href=/page/Contact_Us >Contact Us
+                               <a .entry href=@{PageR "Contact_Us"} >Contact Us
                           <li .separator>|
                           <li .entry>
                                <a .entry href=http://genspace.org/blog >Blog

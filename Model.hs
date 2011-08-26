@@ -9,7 +9,7 @@ import Database.Persist.Sqlite
 import Database.Persist.TH
 import Data.Time
 
-data EventType = Class | Talk | Workshop
+data EventType = Class | Workshop
                  deriving (Show, Read, Eq)
 derivePersistField "EventType"
 

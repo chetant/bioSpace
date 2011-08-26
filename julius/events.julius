@@ -9,7 +9,7 @@ $(function()
 {
   var startDate = $.datepicker.parseDate('yymmdd', "#{show fromDate}");
   var endDate = $.datepicker.parseDate('yymmdd', "#{show toDate}");
-  var talkDates = set(#{talkDaysStr});
+  var outDates = set(#{outDaysStr});
   var classDates = set(#{classDaysStr});
   var workDates = set(#{workDaysStr});
   $("#calendar").datepicker({
@@ -23,14 +23,14 @@ $(function()
          onSelect: function(dateText, inst)
          {
 	   var date = $.datepicker.parseDate('yymmdd', dateText);
-           if(date in talkDates || date in classDates || date in workDates)
+           if(date in outDates || date in classDates || date in workDates)
 	      window.location = "/events/all/between/"+dateText+"/"+dateText;
          },
          beforeShowDay: function(date)
          {
-             if(date in talkDates)
+             if(date in outDates)
              {
-               return [true, "highlighted_talks"];
+               return [true, "highlighted_outdoors"];
              }
              else if(date in classDates)
              {

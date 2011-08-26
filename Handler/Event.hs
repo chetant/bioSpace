@@ -54,21 +54,24 @@ getEventsBetR filterType fromDate toDate = do
       isAuthorized (_,e) = (isJust mu) || (eventIsPublic e)
       evFilter = (buildEvTypeFilter filterType) . snd
   allEventsList <- (filter evFilter . filter isAuthorized) <$> (runDB $ selectList [EventDateGe calStartDay, EventDateLe calEndDay] [] 0 0)
-  let eventsList = map toEntry $ 
-                   filter 
-                   (\x -> (((eventDate . snd) x `diffDays` startDay) >= 0) && (((eventDate . snd) x `diffDays` endDay) <= 0))
-                   allEventsList
-  case eventsList of
+  let eventsBetween = filter 
+                      (\x -> (((eventDate . snd) x `diffDays` startDay) >= 0) && 
+                             (((eventDate . snd) x `diffDays` endDay) <= 0))
+                      allEventsList
+      eventsList = map toEntry $ filter (not . eventTentative . snd) eventsBetween
+      tentativeEventsList = map toEntry $ filter (eventTentative . snd) eventsBetween
+  case (eventsList ++ tentativeEventsList) of
     [(_,[event])] -> redirect RedirectTemporary (EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event))
     otherwise -> do
       let events :: [[Event]]
           events = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty eventsList
-          allEvents = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty $ map toEntry allEventsList
-          talkDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((== Talk) . eventType . head) allEvents
-          classDaysStr = join "," $ map (juliusifyDate . eventDate . head) $ filter ((== Class) . eventType . head) allEvents
-          workDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((== Workshop) . eventType . head) allEvents
+          allEvents = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty $ eventsList
+          outDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((buildEvTypeFilter "outdoors") . head) allEvents
+          classDaysStr = join "," $ map (juliusifyDate . eventDate . head) $ filter ((buildEvTypeFilter "courses") . head) allEvents
+          workDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((buildEvTypeFilter "workshops") . head) allEvents
           juliusifyDate date = "$.datepicker.parseDate('yymmdd', \"" <++> (Text.pack . show . getDateInt) date <++> "\")"
           slug event = addHtml (preEscapedText . eventSlug $ event)
+          unscheduledEvents = map (head . snd) tentativeEventsList
       defaultLayout $ do
                setTitle "Genspace - Events"
                addScript $ StaticR js_jquery_min_js
@@ -92,9 +95,9 @@ getEventR dt tm title = do
       toEntry (_, e) = (eventDate e, [e])
   allEventsList <- filter isAuthorized <$> (runDB $ selectList [EventDateGe calStartDay, EventDateLe calEndDay] [] 0 0)
   let allEvents = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty $ map toEntry allEventsList
-      talkDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((== Talk) . eventType . head) allEvents
-      classDaysStr = join "," $ map (juliusifyDate . eventDate . head) $ filter ((== Class) . eventType . head) allEvents
-      workDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((== Workshop) . eventType . head) allEvents
+      outDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((buildEvTypeFilter "outdoors") . head) allEvents
+      classDaysStr = join "," $ map (juliusifyDate . eventDate . head) $ filter ((buildEvTypeFilter "courses") . head) allEvents
+      workDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((buildEvTypeFilter "workshops") . head) allEvents
       juliusifyDate date = "$.datepicker.parseDate('yymmdd', \"" <++> (Text.pack . show . getDateInt) date <++> "\")"
   defaultLayout $ do
     setTitle . toHtml $ "Genspace - Event - " <++> (eventTitle event)
@@ -254,11 +257,11 @@ postEventDeleteR dt tm title = do
 ----- Helper functions ----
 ---------------------------
 
-data Event_ = Event_ Text UTCTime EventType (Maybe Text) Text Text Bool Double (Maybe Double) (Maybe Text) deriving (Show, Eq)
+data Event_ = Event_ Text UTCTime EventType (Maybe Text) Text Text Bool Double (Maybe Double) (Maybe Text) Bool deriving (Show, Eq)
 
-getEvent (Event_ title datetime etype mimg slug desc isPublic duration mprice mlocation) uId = 
+getEvent (Event_ title datetime etype mimg slug desc isPublic duration mprice mlocation tentative) uId = 
     Event (utctDay datetime) (timeToTimeOfDay . utctDayTime $ datetime)
-          etype isPublic title mimg slug desc duration mprice mlocation uId
+          etype isPublic title mimg slug desc duration mprice mlocation tentative uId
 
 eventDateTime ev = UTCTime (eventDate ev) (timeOfDayToTime $ eventTime ev)
 eventDateLocalTime ev = LocalTime (eventDate ev) (eventTime ev)
@@ -277,11 +280,12 @@ eventFormlet event = renderDivs $ Event_
                          <*> areq doubleField "Duration(hours)" (eventDuration <$> event)
                          <*> aopt doubleField "Price" (eventPrice <$> event)
                          <*> aopt textField "Location" (eventLocation <$> event)
+                         <*> areq boolField "Event is Tentative?" (eventTentative <$> event)
     where descFS :: FieldSettings Text
           descFS = FieldSettings "Description" Nothing (Just "description") (Just "description")
           slugFS :: FieldSettings Text
           slugFS = FieldSettings "Slug" Nothing (Just "slug") (Just "slug")
-          eventTypes = [("Class", Class),("Talk", Talk),("Workshop", Workshop)]
+          eventTypes = [("Course", Class),("Talk/Workshop", Workshop)]
 
 dateFromYYYYMMDD :: Int -> Day
 dateFromYYYYMMDD yyyymmdd = fromGregorian yyyy mm dd
@@ -345,7 +349,7 @@ rangeIsYear _ = False
 
 buildEvTypeFilter :: Text -> (Event -> Bool)
 buildEvTypeFilter "courses" = (== Class) . eventType
-buildEvTypeFilter "talks" = (== Talk) . eventType
+buildEvTypeFilter "outdoors" = isJust . eventLocation
 buildEvTypeFilter "workshops" = (== Workshop) . eventType
 buildEvTypeFilter _ = const True
 
@@ -372,17 +376,18 @@ getICALR = do
 buildICAL :: [Event] -> Handler RepICAL
 buildICAL es = do
   -- TODO: get this reference timezone either per user, or change calendar to store events in UTC
+  let es' = filter (not . eventTentative) es
   tzs <- liftIO $ getTimeZoneSeriesFromOlsonFile "/usr/share/zoneinfo/America/New_York"
-  os <- map snd <$> (runDB $ mapM (getBy404 . UniqueProfile . eventOrganizer) es)
+  os <- map snd <$> (runDB $ mapM (getBy404 . UniqueProfile . eventOrganizer) es')
   getURL <- getUrlRender
-  return $ RepICAL (toContent (calendar getURL tzs (zip os es)))
+  return $ RepICAL (toContent (calendar getURL tzs (zip os es')))
     where calendar :: (Route BioSpace -> Text) -> TimeZoneSeries -> [(Profile, Event)] -> Text
           calendar getURL tzs oes = 
                "BEGIN:VCALENDAR\n\
                \VERSION:2.0\n\
                \PRODID:-//bioSpace//genspace/NONSGML v1.0//EN\n"
                <++> foldr (showEvent getURL tzs) "END:VCALENDAR\n" oes
-          showEvent getURL tzs (o, e) r = 
+          showEvent getURL tzs (o, e) r =
                "BEGIN:VEVENT\n" <++>
                "UID:" <++> getUID e <++> "\n" <++>
                "DTSTAMP:" <++> eventTimeStr tzs e <++> "\n" <++>

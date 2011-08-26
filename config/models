@@ -53,6 +53,7 @@ Event
     duration Double default=1
     price Double Maybe
     location Text Maybe
+    tentative Bool Eq
     organizer UserId Eq
     UniqueEvent date time title
 EventTag

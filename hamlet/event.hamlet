@@ -2,7 +2,10 @@
 <h1>
     <a href=@{EventsR} .headlink> Events
     \ > #{eventTitle event}
-#{getFormattedTime event}
+$if (not (eventTentative event))
+    #{getFormattedTime event}
+$else
+    To be scheduled..
 <table width="100%">
  <tr>
   <td style="margin:auto;vertical-align:top">

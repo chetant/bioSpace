@@ -2,7 +2,26 @@
 <table width="100%">
  <tr>
   <td style="margin:auto;vertical-align:top">
-    Upcoming Events (#{getShortFormTime startDay} - #{getShortFormTime endDay})
+    $if (not (null unscheduledEvents))
+        <h3>Coming Soon
+        <hr>
+        $forall uEvent <- unscheduledEvents
+            <table>
+                <tr>
+                    <td>
+                        $maybe uPhotoURL <- eventIconImage uEvent
+                            <img .eventicon src=/static/uploads/#{uPhotoURL}>
+                        $nothing
+                            <img .eventicon src=/static/img/NoEvent.png>
+                    <td style="margin:auto;text-align:left;vertical-align:top">
+                        <h3>
+                            <a .normallink href=@{EventR (getDateIntFromEvent uEvent) (getTimeIntFromEvent uEvent) (eventTitle uEvent)}>
+                                #{eventTitle uEvent}
+                        ^{slug uEvent}
+            <hr>
+        <br>
+        <br>
+    <h3>Upcoming Events (#{getShortFormTime startDay} - #{getShortFormTime endDay})
     <hr>
     $forall dayEvents <- events
         <h4>
@@ -37,24 +56,22 @@
        <td .selected>
         Courses
 
-      $if ((/=) filterType "talks")
-       <td .highlighted_talks>
-        <a .nodec href=@{EventsViewR "talks"}>
-         Talks
-      $else
-       <td .selected>
-        Talks
-
       $if ((/=) filterType "workshops")
        <td .highlighted_workshops>
         <a .nodec href=@{EventsViewR "workshops"}>
-         Workshops
+         Talks/Workshops
       $else
        <td .selected>
-         Workshops
+         Talks/Workshops
 
      <tr style="width:100%">
-      <td>
+      $if ((/=) filterType "outdoors")
+       <td .highlighted_outdoors>
+        <a .nodec href=@{EventsViewR "outdoors"}>
+         On The Road
+      $else
+       <td .selected>
+         On The Road
       $if ((/=) filterType "all")
        <td .highlighted_all>
         <a .nodec href=@{EventsViewR "all"}>
