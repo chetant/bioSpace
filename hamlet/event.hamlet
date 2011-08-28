@@ -19,16 +19,12 @@
                <a href=@{EventDateDeleteR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event) (getDateInt date)}>Delete Date
    <h2> #{eventTitle event}
    $if (not (eventTentative event))
-       $if (null dates)
-           <h4>#{getFormattedTime event}
-       $else
-           <h4>
-               #{getShortTime (eventDateLocalTime event)}
-               \ on #
-               #{getFormattedDates ((:) (eventDate event) dates)}
+       <h4>
+           #{getEventDurationString event}
+           \ on #
+           #{getFormattedDates ((:) (eventDate event) dates)}
    $else
        <h4>To be scheduled..
-   <div>Duration: approx. #{eventDuration event} hours
    $maybe location <- eventLocation event
        <div>Location: #
            <a .normallink target="_blank" href="http://maps.google.com/maps?q=#{location}&hl=en&vpsrc=0&z=14">
