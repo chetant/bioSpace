@@ -10,13 +10,16 @@ import Data.Time
 import Data.Time.LocalTime.TimeZone.Series(TimeZoneSeries, localTimeToUTC')
 import Data.Time.LocalTime.TimeZone.Olson(getTimeZoneSeriesFromOlsonFile)
 import System.Locale(defaultTimeLocale)
+import Data.Time.Calendar.OrdinalDate(sundayStartWeek)
 import Data.Char(isSpace)
 import Text.Hamlet(renderHtmlText, preEscapedText)
 import Data.String
 import Yesod.Auth
 import Yesod.Auth.HashDB(UserId, addUser, changePasswd)
 import qualified Data.Map as Map
-import Data.Maybe(fromJust, isJust)
+import qualified Data.Set as Set
+import Data.Maybe(fromJust, isJust, isNothing, catMaybes)
+import Data.List(sortBy)
 
 import Fields.ImageUpload
 import Fields.Users
@@ -41,6 +44,17 @@ getEventsFromR filterType fromDate = do
       toDate = (getDateInt . (addDays daysOffset) . dateFromYYYYMMDD) fromDate
   getEventsBetR filterType fromDate toDate
 
+getEventsBetween mu startDay endDay f = do
+  let isAuthorized (_,e) = (isJust mu) || (eventIsPublic e)
+      evFilter = f . snd
+      joinMaybe x y = ((,) x) <$> y
+  events' <- (filter evFilter . filter isAuthorized) <$> (runDB $ selectList [EventDateGe startDay, EventDateLe endDay] [] 0 0)
+  -- Get Events that have xtra days in the period we're searching for
+  events'' <- runDB $ do
+                evids <- map (eventDayEvent . snd) <$> (selectList [EventDayDayGe startDay, EventDayDayLe endDay] [] 0 0)
+                catMaybes <$> mapM (\evid -> joinMaybe evid <$> get evid) evids
+  return $ Map.toList $ Map.fromList events'' `Map.union` Map.fromList events'
+
 getEventsBetR :: Text -> Int -> Int -> Handler RepHtml
 getEventsBetR filterType fromDate toDate = do
   mu <- maybeAuthId
@@ -50,28 +64,24 @@ getEventsBetR filterType fromDate toDate = do
       calEndDay = ((addDays numDaysInYear) . localDay) currTime
       startDay = dateFromYYYYMMDD fromDate
       endDay = dateFromYYYYMMDD toDate
-      toEntry (_, e) = (eventDate e, [e])
-      isAuthorized (_,e) = (isJust mu) || (eventIsPublic e)
-      evFilter = (buildEvTypeFilter filterType) . snd
-  allEventsList <- (filter evFilter . filter isAuthorized) <$> (runDB $ selectList [EventDateGe calStartDay, EventDateLe calEndDay] [] 0 0)
-  let eventsBetween = filter 
-                      (\x -> (((eventDate . snd) x `diffDays` startDay) >= 0) && 
-                             (((eventDate . snd) x `diffDays` endDay) <= 0))
-                      allEventsList
-      eventsList = map toEntry $ filter (not . eventTentative . snd) eventsBetween
-      tentativeEventsList = map toEntry $ filter (eventTentative . snd) eventsBetween
-  case (eventsList ++ tentativeEventsList) of
-    [(_,[event])] -> redirect RedirectTemporary (EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event))
+  allEventsList <- getEventsBetween mu calStartDay calEndDay (buildEvTypeFilter filterType)
+  dates <- mapM (\(evid, e) -> ((eventDate e):) <$> getAdditionalEventDates evid) allEventsList
+  eventsList <- map snd <$> getEventsBetween mu startDay endDay (buildEvTypeFilter filterType)
+  let eventsWithDates = zip (map snd allEventsList) dates
+      events = sortBy (\x y -> compare (eventDateTime x) (eventDateTime y)) $ filter (not . eventTentative) eventsList
+      unscheduledEvents = filter eventTentative eventsList
+  case eventsList of
+    [event] -> redirect RedirectTemporary (EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event))
     otherwise -> do
-      let events :: [[Event]]
-          events = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty eventsList
-          allEvents = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty $ eventsList
-          outDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((buildEvTypeFilter "outdoors") . head) allEvents
-          classDaysStr = join "," $ map (juliusifyDate . eventDate . head) $ filter ((buildEvTypeFilter "courses") . head) allEvents
-          workDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((buildEvTypeFilter "workshops") . head) allEvents
+      let eventHasSingleDate event = maybe True (const True) $ lookup event eventsWithDates
+          getFiltDayStr s = join ","  $ 
+                            concatMap (map juliusifyDate . snd) $ 
+                            filter ((buildEvTypeFilter s) . fst) eventsWithDates
+          outDaysStr = getFiltDayStr "outdoors"
+          classDaysStr = getFiltDayStr "courses"
+          workDaysStr = getFiltDayStr "workshops"
           juliusifyDate date = "$.datepicker.parseDate('yymmdd', \"" <++> (Text.pack . show . getDateInt) date <++> "\")"
           slug event = addHtml (preEscapedText . eventSlug $ event)
-          unscheduledEvents = map (head . snd) tentativeEventsList
       defaultLayout $ do
                setTitle "Genspace - Events"
                addScript $ StaticR js_jquery_min_js
@@ -84,6 +94,8 @@ getEventR :: Int -> Int -> Text -> Handler RepHtml
 getEventR dt tm title = do
   (evid, event, owners, ownProfiles) <- getEventAndOwnersOr404 dt tm title
   mu <- maybeAuthId
+  when (isNothing mu) $ permissionDenied "Please login to see this event"
+  dates <- getAdditionalEventDates evid
   isAdmin <- maybe (return False) checkAdmin mu
   let canEdit = maybe isAdmin (`elem` owners) mu
   currTime <- utcToLocalTime <$> liftIO getCurrentTimeZone <*> liftIO getCurrentTime
@@ -112,38 +124,34 @@ getEventCreateR :: Handler RepHtml
 getEventCreateR = do
   uId <- requireAuthId
   profile <- runDB $ snd <$> getBy404 (UniqueProfile uId)
-  case (isEditableType . profileType) profile of
-    True -> do
-        ((res, form), enctype) <- runFormPost $ eventFormlet Nothing
-        defaultLayout $ do
-                    setTitle "Create New Event"
-                    let objName :: Text
-                        objName = "Create Event"
-                        actionName :: Text
-                        actionName = "Create"
-                    addWidget $(widgetFile "createEdit")
-    False -> permissionDenied "Not Authorized"
+  unless ((isEditableType . profileType) profile) $ permissionDenied "Not Authorized"
+  ((res, form), enctype) <- runFormPost $ eventFormlet Nothing
+  defaultLayout $ do
+    setTitle "Create New Event"
+    let objName :: Text
+        objName = "Create Event"
+        actionName :: Text
+        actionName = "Create"
+    addWidget $(widgetFile "createEdit")
 
 postEventCreateR :: Handler ()
 postEventCreateR = do
   uId <- requireAuthId
   profile <- runDB $ snd <$> getBy404 (UniqueProfile uId)
-  case (isEditableType . profileType) profile of
-    True -> do
-      ((res, form), enctype) <- runFormPost $ eventFormlet Nothing
-      case res of
-        FormSuccess event_ -> do
+  unless ((isEditableType . profileType) profile) $ permissionDenied "Not Authorized"
+  ((res, form), enctype) <- runFormPost $ eventFormlet Nothing
+  case res of
+    FormSuccess event_ -> do
                      event <- runDB $ do
                                 let event = getEvent event_ uId
                                 eid <- insert event
                                 insert $ EventUser eid uId
                                 return event
                      redirect RedirectTemporary (EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event))
-        FormFailure ts -> do
+    FormFailure ts -> do
                      setMessage . toHtml $ join ", " ts
                      redirect RedirectTemporary EventCreateR
-        _ -> redirect RedirectTemporary EventCreateR
-    False -> permissionDenied "Not Authorized"
+    _ -> redirect RedirectTemporary EventCreateR
 
 getEventUserPermissionsR :: Int -> Int -> Text -> Handler RepHtml
 getEventUserPermissionsR dt tm title = do
@@ -253,6 +261,73 @@ postEventDeleteR dt tm title = do
     _ -> return ()
   redirect RedirectTemporary EventsR
 
+
+getEventDateAddR :: Int -> Int -> Text -> Handler RepHtml
+getEventDateAddR dt tm title = do
+  uId <- requireAuthId
+  (evid, event, owners, _) <- getEventAndOwnersOr404 dt tm title
+  isAdmin <- checkAdmin uId
+  let canEdit = isAdmin  || (uId `elem` owners)
+  unless canEdit $ permissionDenied "Not Authorized"
+  ((res, form), enctype) <- runFormPost $ renderDivs $ areq Handler.Commons.dayField "Day" Nothing
+  defaultLayout $ do
+    setTitle "Event Day Addition"
+    addWidget $ [hamlet|
+<h1> Day Addition - Event #{eventTitle event}
+<form enctype="#{enctype}" method=POST>
+    ^{form}
+    <input type="submit" value="Add">
+|]
+
+postEventDateAddR :: Int -> Int -> Text -> Handler ()
+postEventDateAddR dt tm title = do
+  uId <- requireAuthId
+  (evid, event, owners, _) <- getEventAndOwnersOr404 dt tm title
+  isAdmin <- checkAdmin uId
+  let canEdit = isAdmin  || (uId `elem` owners)
+  unless canEdit $ permissionDenied "Not Authorized"
+  ((res, form), enctype) <- runFormPost $ renderDivs $ areq Handler.Commons.dayField "Day" Nothing
+  case res of
+    FormSuccess day -> do
+             runDB $ insert $ EventDay evid day
+             redirect RedirectTemporary (EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event))
+    FormFailure ts -> do
+             setMessage . toHtml $ join ", " ts
+             redirect RedirectTemporary (EventDateAddR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event))
+    _ -> redirect RedirectTemporary (EventDateAddR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event))
+
+getEventDateDeleteR :: Int -> Int -> Text -> Int -> Handler RepHtml
+getEventDateDeleteR dt tm title dateInt = do
+  uId <- requireAuthId
+  (evid, event, owners, _) <- getEventAndOwnersOr404 dt tm title
+  isAdmin <- checkAdmin uId
+  let canEdit = isAdmin  || (uId `elem` owners)
+  unless canEdit $ permissionDenied "Not Authorized"
+  ((res, form), enctype) <- runFormPost $ renderDivs $ areq boolField "Are You Sure?" (Just False)
+  defaultLayout $ do
+    setTitle "Event Date Delete Confirmation"
+    addWidget $ [hamlet|
+<h1> Deletion Confirmation - Event Date #{show dateInt}
+<form enctype="#{enctype}" method=POST>
+    ^{form}
+    <input type="submit" value="Submit">
+|]
+
+postEventDateDeleteR :: Int -> Int -> Text -> Int -> Handler ()
+postEventDateDeleteR dt tm title dateInt = do
+  uId <- requireAuthId
+  (evid, event, owners, _) <- getEventAndOwnersOr404 dt tm title
+  isAdmin <- checkAdmin uId
+  let canEdit = isAdmin  || (uId `elem` owners)
+  unless canEdit $ permissionDenied "Not Authorized"
+  ((res, form), enctype) <- runFormPost $ renderDivs $ areq boolField "Confirmed" (Just False)
+  case res of
+    FormSuccess True -> runDB $ getBy (UniqueEventDay evid (dateFromYYYYMMDD dateInt)) >>= 
+                        (maybe (return ()) (delete . fst))
+    FormFailure ts -> setMessage . toHtml $ foldr (\a b -> a <++> ", " <++> b) "" ts
+    _ -> return ()
+  redirect RedirectTemporary (EventR dt tm title)
+
 ---------------------------
 ----- Helper functions ----
 ---------------------------
@@ -309,10 +384,13 @@ getEventAndOwnersOr404 dt tm title = do
                 let (owners, ownProfiles) = unzip $ 
                                             filter (isEditableType . profileType . fromJust . snd) $ 
                                             filter (isJust . snd) $ zip owners_ ownProfiles_
+                eventDays <- getAdditionalEventDates evid
                 return (evid, event, owners, ownProfiles)
       _ -> notFound
 
-getOwners evid = runDB (map (eventUserUser . snd) <$> selectList [EventUserEventEq evid] [] 0 0)
+getAdditionalEventDates evid = runDB $ map (eventDayDay . snd) <$> selectList [EventDayEventEq evid] [] 0 0
+
+getOwners evid = runDB $ map (eventUserUser . snd) <$> selectList [EventUserEventEq evid] [] 0 0
 
 getDateIntFromEvent :: Event -> Int
 getDateIntFromEvent = getDateInt . eventDate
@@ -330,7 +408,23 @@ getTimeInt (TimeOfDay hh mm _) = hh * 100 + mm
 
 getFormattedTime = (formatTime defaultTimeLocale " %l:%M %p on %A %b %e, %Y") . eventDateLocalTime
 getShortFormTime = formatTime defaultTimeLocale "%A, %B %e"
+getLongFormTime = formatTime defaultTimeLocale "%A, %B %e '%y"
 getShortTime = formatTime defaultTimeLocale "%l:%M %p"
+
+getFormattedDates :: Event -> [Day] -> String
+getFormattedDates event days = undefined
+    where strDow (d:[]) = strDowFst d
+          strDow (d:ds) = strDowFst d ++ ", " ++ ""
+          strDowFst = formatTime defaultTimeLocale "%A, %B %e"
+          strDowSnd = formatTime defaultTimeLocale "%B %e"
+          daysByDowByMonth :: Map.Map Int (Map.Map Int [Day])
+          daysByDowByMonth = Map.map monthMap daysByDow
+          daysByDow = Map.fromListWith (++) $
+                      zip (map dow allDays) (map (:[]) allDays)
+          monthMap ds = Map.fromListWith (++) $ zip (map dow ds) (map (:[]) ds)
+          dow = snd . sundayStartWeek
+          month = (\(_,m,_) -> m) . toGregorian
+          allDays = (eventDate event):days
 
 numDaysInYear = 365
 

@@ -15,6 +15,12 @@ $else
            <a href=@{EventEditR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>Edit Event
        <div>
            <a href=@{EventDeleteR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>Delete Event
+       <div>
+           <a href=@{EventDateAddR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>Add Additional Date
+       $forall date <- dates
+           <div>
+               #{show (getDateInt date)}, #
+               <a href=@{EventDateDeleteR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event) (getDateInt date)}>Delete Date
    <h2> #{eventTitle event}
    <div>Duration: approx. #{eventDuration event} hours
    $maybe location <- eventLocation event

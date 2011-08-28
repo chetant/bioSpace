@@ -50,6 +50,7 @@ instance YesodJquery BioSpace where
     urlJqueryUiDateTimePicker _ = Left (StaticR js_jquery_ui_datetimepicker_min_js)
 
 dateTimeField = jqueryDayTimeField
+dayField = jqueryDayField (def { jdsChangeMonth=True })
 
 isEditableType :: UserType -> Bool
 isEditableType Member = True

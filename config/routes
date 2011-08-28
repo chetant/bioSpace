@@ -40,3 +40,5 @@
 /edit/event/#Int/#Int/#Text EventEditR GET POST
 /delete/event/#Int/#Int/#Text EventDeleteR GET POST
 /feeds/events.ics ICALR GET
+/event/#Int/#Int/#Text/add/day EventDateAddR GET POST
+/event/#Int/#Int/#Text/delete/#Int EventDateDeleteR GET POST

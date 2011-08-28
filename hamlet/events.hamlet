@@ -21,24 +21,31 @@
             <hr>
         <br>
         <br>
-    <h3>Upcoming Events (#{getShortFormTime startDay} - #{getShortFormTime endDay})
+    $if ((==) startDay endDay)
+       <h3>Upcoming Events for #{getLongFormTime startDay}
+    $else
+       <h3>Upcoming Events (#{getLongFormTime startDay} - #{getLongFormTime endDay})
     <hr>
-    $forall dayEvents <- events
-        <h4>
-            #{getShortFormTime (eventDate (head dayEvents))}
-        $forall event <- dayEvents
-            <table>
-                <tr>
-                    <td>
-                        $maybe photoURL <- eventIconImage event
-                            <img .eventicon src=/static/uploads/#{photoURL}>
-                        $nothing
-                            <img .eventicon src=/static/img/NoEvent.png>
-                    <td style="margin:auto;text-align:left;vertical-align:top">
-                        <h3>
-                            <a .normallink href=@{EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>
-                                #{getShortTime (eventTime event)} to #{getShortTime (eventEndTime event)} - #{eventTitle event}
-                        ^{slug event}
+    $forall event <- events
+        <table>
+            <tr>
+                <td>
+                    $maybe photoURL <- eventIconImage event
+                        <img .eventicon src=/static/uploads/#{photoURL}>
+                    $nothing
+                        <img .eventicon src=/static/img/NoEvent.png>
+                <td style="margin:auto;text-align:left;vertical-align:top">
+                    <h4>
+                        #{getShortFormTime (eventDate event)}
+                        $if eventHasSingleDate event
+                            \ - #{getShortTime (eventTime event)} to #{getShortTime (eventEndTime event)}
+                        $else
+                            <h4>
+                                #{getShortTime (eventTime event)} to #{getShortTime (eventEndTime event)}
+                    <h3>
+                        <a .normallink href=@{EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>
+                            #{eventTitle event}
+                    ^{slug event}
         <hr>
   <td style="width:15%;vertical-align:top">
     <div .inline #calendar>

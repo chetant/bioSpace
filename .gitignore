@@ -2,4 +2,4 @@
 static/tmp/*
 dist/
 debug.db3
-
+static/uploads/*

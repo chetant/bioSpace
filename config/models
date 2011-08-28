@@ -64,6 +64,10 @@ EventUser
     event EventId Eq
     user UserId Eq
     UniqueEventUser user event
+EventDay
+    event EventId Eq
+    day Day Eq Ge Le Desc
+    UniqueEventDay event day
 
 WikiPage
     name Text Eq
