@@ -102,7 +102,7 @@ getEventR dt tm title = do
   when (isNothing mu && not (eventIsPublic event)) $ permissionDenied "Please login to see this event"
   dates <- getAdditionalEventDates evid
   isAdmin <- maybe (return False) checkAdmin mu
-  let canEdit = maybe isAdmin (`elem` owners) mu
+  let canEdit = maybe isAdmin ((|| isAdmin) . (`elem` owners)) mu
   currTime <- utcToLocalTime <$> liftIO getCurrentTimeZone <*> liftIO getCurrentTime
   let calStartDay = min (localDay currTime) (dateFromYYYYMMDD dt)
       calEndDay = ((addDays numDaysInYear) . localDay) currTime

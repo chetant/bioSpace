@@ -31,7 +31,7 @@ getProjectR name = do
   (prid, project, owners, ownProfiles) <- getProjectAndOwnersOr404 name
   mu <- maybeAuthId
   isAdmin <- maybe (return False) checkAdmin mu
-  let canEdit = maybe isAdmin (`elem` owners) mu
+  let canEdit = maybe isAdmin ((|| isAdmin) . (`elem` owners)) mu
   defaultLayout $ do
     setTitle . toHtml $ "Genspace - Project - " <++> (projectName project)
     let description = addHtml (preEscapedText . projectDescription $ project)

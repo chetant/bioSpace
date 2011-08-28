@@ -22,7 +22,7 @@ getPageR name = do
   (pgid, page, owners, ownProfiles) <- getPageAndOwnersOr404 (humanizeName name)
   mu <- maybeAuthId
   isAdmin <- maybe (return False) checkAdmin mu
-  let canEdit = maybe isAdmin (`elem` owners) mu
+  let canEdit = maybe isAdmin ((|| isAdmin) . (`elem` owners)) mu
   defaultLayout $ do
     setTitle . toHtml $ "Genspace - " <++> (wikiPageName page)
     let content = addHtml (preEscapedText . wikiPageContents $ page)
