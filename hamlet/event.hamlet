@@ -3,7 +3,12 @@
     <a href=@{EventsR} .headlink> Events
     \ > #{eventTitle event}
 $if (not (eventTentative event))
-    #{getFormattedTime event}
+    $if (null dates)
+        #{getFormattedTime event}
+    $else
+	#{getShortTime (eventDateLocalTime event)}
+	\ on #
+        #{getFormattedDates ((:) (eventDate event) dates)}
 $else
     To be scheduled..
 <table width="100%">

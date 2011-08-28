@@ -35,13 +35,15 @@
                     $nothing
                         <img .eventicon src=/static/img/NoEvent.png>
                 <td style="margin:auto;text-align:left;vertical-align:top">
-                    <h4>
-                        #{getShortFormTime (eventDate event)}
-                        $if eventHasSingleDate event
-                            \ - #{getShortTime (eventTime event)} to #{getShortTime (eventEndTime event)}
-                        $else
-                            <h4>
-                                #{getShortTime (eventTime event)} to #{getShortTime (eventEndTime event)}
+                    $if eventHasSingleDate event
+                        <h4>
+                            #{getShortFormTime (eventDate event)}
+                            \ - #{getEventDurationString event}
+                    $else
+                        <h4>
+                            #{getFormattedDates (getEventDates event)}
+                        <h4>
+                            #{getEventDurationString event}
                     <h3>
                         <a .normallink href=@{EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event)}>
                             #{eventTitle event}

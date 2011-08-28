@@ -8,7 +8,6 @@ function set ()
 $(function()
 {
   var startDate = $.datepicker.parseDate('yymmdd', "#{show fromDate}");
-  var endDate = $.datepicker.parseDate('yymmdd', "#{show toDate}");
   var outDates = set(#{outDaysStr});
   var classDates = set(#{classDaysStr});
   var workDates = set(#{workDaysStr});

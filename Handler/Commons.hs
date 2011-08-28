@@ -35,6 +35,14 @@ join ch []  = ""
 join ch [a] = a
 join ch xs  = foldl1 (\a b -> a <++> ch <++> b) xs
 
+joinStr ch []  = ""
+joinStr ch [a] = a
+joinStr ch xs  = foldl1 (\a b -> a ++ ch ++ b) xs
+
+trimStr [] = []
+trimStr (' ':cs) = trimStr cs
+trimStr cs = cs
+
 profileFullName p = profileFirstName p <++> " " <++> profileLastName p
 
 instance YesodNic BioSpace where

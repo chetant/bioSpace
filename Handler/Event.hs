@@ -17,6 +17,7 @@ import Data.String
 import Yesod.Auth
 import Yesod.Auth.HashDB(UserId, addUser, changePasswd)
 import qualified Data.Map as Map
+import qualified Data.IntMap as I
 import qualified Data.Set as Set
 import Data.Maybe(fromJust, isJust, isNothing, catMaybes)
 import Data.List(sortBy)
@@ -52,19 +53,26 @@ getEventsBetween mu startDay endDay f = do
   -- Get Events that have xtra days in the period we're searching for
   events'' <- runDB $ do
                 evids <- map (eventDayEvent . snd) <$> (selectList [EventDayDayGe startDay, EventDayDayLe endDay] [] 0 0)
-                catMaybes <$> mapM (\evid -> joinMaybe evid <$> get evid) evids
+                (filter evFilter . filter isAuthorized . catMaybes) <$> mapM (\evid -> joinMaybe evid <$> get evid) evids
   return $ Map.toList $ Map.fromList events'' `Map.union` Map.fromList events'
+
+juliusifyDate date = "$.datepicker.parseDate('yymmdd', \"" <++> 
+                     (Text.pack . show . getDateInt) date <++> "\")"
+getFiltDayStr s eds = join ","  $ 
+                      concatMap (map juliusifyDate . snd) $ 
+                      filter ((buildEvTypeFilter s) . fst) eds
 
 getEventsBetR :: Text -> Int -> Int -> Handler RepHtml
 getEventsBetR filterType fromDate toDate = do
   mu <- maybeAuthId
   isAdmin <- maybe (return False) checkAdmin mu
   currTime <- utcToLocalTime <$> liftIO getCurrentTimeZone <*> liftIO getCurrentTime
-  let calStartDay = localDay currTime
+  let calStartDay = min (localDay currTime) startDay
       calEndDay = ((addDays numDaysInYear) . localDay) currTime
       startDay = dateFromYYYYMMDD fromDate
       endDay = dateFromYYYYMMDD toDate
-  allEventsList <- getEventsBetween mu calStartDay calEndDay (buildEvTypeFilter filterType)
+  allEventsList <- filter (not . eventTentative . snd) <$> 
+                   getEventsBetween mu calStartDay calEndDay (buildEvTypeFilter filterType)
   dates <- mapM (\(evid, e) -> ((eventDate e):) <$> getAdditionalEventDates evid) allEventsList
   eventsList <- map snd <$> getEventsBetween mu startDay endDay (buildEvTypeFilter filterType)
   let eventsWithDates = zip (map snd allEventsList) dates
@@ -73,14 +81,11 @@ getEventsBetR filterType fromDate toDate = do
   case eventsList of
     [event] -> redirect RedirectTemporary (EventR (getDateIntFromEvent event) (getTimeIntFromEvent event) (eventTitle event))
     otherwise -> do
-      let eventHasSingleDate event = maybe True (const True) $ lookup event eventsWithDates
-          getFiltDayStr s = join ","  $ 
-                            concatMap (map juliusifyDate . snd) $ 
-                            filter ((buildEvTypeFilter s) . fst) eventsWithDates
-          outDaysStr = getFiltDayStr "outdoors"
-          classDaysStr = getFiltDayStr "courses"
-          workDaysStr = getFiltDayStr "workshops"
-          juliusifyDate date = "$.datepicker.parseDate('yymmdd', \"" <++> (Text.pack . show . getDateInt) date <++> "\")"
+      let eventHasSingleDate event = maybe True (null . drop 1) $ lookup event eventsWithDates
+          getEventDates event = maybe [] id $ lookup event eventsWithDates
+          outDaysStr = getFiltDayStr "outdoors" eventsWithDates
+          classDaysStr = getFiltDayStr "courses" eventsWithDates
+          workDaysStr = getFiltDayStr "workshops" eventsWithDates
           slug event = addHtml (preEscapedText . eventSlug $ event)
       defaultLayout $ do
                setTitle "Genspace - Events"
@@ -94,23 +99,20 @@ getEventR :: Int -> Int -> Text -> Handler RepHtml
 getEventR dt tm title = do
   (evid, event, owners, ownProfiles) <- getEventAndOwnersOr404 dt tm title
   mu <- maybeAuthId
-  when (isNothing mu) $ permissionDenied "Please login to see this event"
+  when (isNothing mu && not (eventIsPublic event)) $ permissionDenied "Please login to see this event"
   dates <- getAdditionalEventDates evid
   isAdmin <- maybe (return False) checkAdmin mu
   let canEdit = maybe isAdmin (`elem` owners) mu
   currTime <- utcToLocalTime <$> liftIO getCurrentTimeZone <*> liftIO getCurrentTime
-  let calStartDay = localDay currTime
+  let calStartDay = min (localDay currTime) (dateFromYYYYMMDD dt)
       calEndDay = ((addDays numDaysInYear) . localDay) currTime
-      fromDate = getDateInt calStartDay
-      toDate = getDateInt calStartDay
-      isAuthorized (_,e) = (isJust mu) || (eventIsPublic e)
-      toEntry (_, e) = (eventDate e, [e])
-  allEventsList <- filter isAuthorized <$> (runDB $ selectList [EventDateGe calStartDay, EventDateLe calEndDay] [] 0 0)
-  let allEvents = map snd $ Map.assocs $ foldr (uncurry $ Map.insertWith' (++)) Map.empty $ map toEntry allEventsList
-      outDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((buildEvTypeFilter "outdoors") . head) allEvents
-      classDaysStr = join "," $ map (juliusifyDate . eventDate . head) $ filter ((buildEvTypeFilter "courses") . head) allEvents
-      workDaysStr = join ","  $ map (juliusifyDate . eventDate . head) $ filter ((buildEvTypeFilter "workshops") . head) allEvents
-      juliusifyDate date = "$.datepicker.parseDate('yymmdd', \"" <++> (Text.pack . show . getDateInt) date <++> "\")"
+      fromDate = dt
+  allEventsList <- getEventsBetween mu calStartDay calEndDay (buildEvTypeFilter "all")
+  dates' <- mapM (\(evid, e) -> ((eventDate e):) <$> getAdditionalEventDates evid) allEventsList
+  let eventsWithDates = zip (map snd allEventsList) dates'
+      outDaysStr = getFiltDayStr "outdoors" eventsWithDates
+      classDaysStr = getFiltDayStr "courses" eventsWithDates
+      workDaysStr = getFiltDayStr "workshops" eventsWithDates
   defaultLayout $ do
     setTitle . toHtml $ "Genspace - Event - " <++> (eventTitle event)
     addScript $ StaticR js_jquery_min_js
@@ -411,20 +413,46 @@ getShortFormTime = formatTime defaultTimeLocale "%A, %B %e"
 getLongFormTime = formatTime defaultTimeLocale "%A, %B %e '%y"
 getShortTime = formatTime defaultTimeLocale "%l:%M %p"
 
-getFormattedDates :: Event -> [Day] -> String
-getFormattedDates event days = undefined
-    where strDow (d:[]) = strDowFst d
-          strDow (d:ds) = strDowFst d ++ ", " ++ ""
-          strDowFst = formatTime defaultTimeLocale "%A, %B %e"
-          strDowSnd = formatTime defaultTimeLocale "%B %e"
-          daysByDowByMonth :: Map.Map Int (Map.Map Int [Day])
-          daysByDowByMonth = Map.map monthMap daysByDow
-          daysByDow = Map.fromListWith (++) $
-                      zip (map dow allDays) (map (:[]) allDays)
-          monthMap ds = Map.fromListWith (++) $ zip (map dow ds) (map (:[]) ds)
+getFormattedDates :: [Day] -> String
+getFormattedDates days = foldl strDow "" $ I.toAscList daysByDowByMonth
+    where strDow :: String -> (Int , I.IntMap [Day]) -> String
+          strDow "" (dow, monMap)  = getDay dow ++ plural monMap ++ ", " ++ 
+                                     strMonMap (I.toAscList monMap)
+          strDow r d@(dow, monMap) = r ++ "; " ++ strDow "" d
+          plural :: I.IntMap [Day] -> String
+          plural mmap
+              | any (not . null . drop 1 . snd) $ I.toList mmap = "s"
+              | otherwise = ""
+          strMonMap :: [(Int, [Day])] -> String
+          strMonMap = foldl monFold ""
+          monFold "" ds = strMon (snd ds)
+          monFold s  ds = s ++ "; " ++ monFold "" ds
+          strMon :: [Day] -> String
+          strMon [d] = formatTime defaultTimeLocale "%B %e" d
+          strMon l@(d:ds) = formatTime defaultTimeLocale "%B" d ++ " " ++ 
+                            joinStr "," (map (trimStr . (formatTime defaultTimeLocale "%e")) l)
+          daysByDowByMonth :: I.IntMap (I.IntMap [Day])
+          daysByDowByMonth = I.map monthMap daysByDow
+          daysByDow   = I.fromListWith (++) $ zip (map dow days) (map (:[]) days)
+          monthMap ds = I.fromListWith (++) $ zip (map month ds) (map (:[]) ds)
           dow = snd . sundayStartWeek
           month = (\(_,m,_) -> m) . toGregorian
-          allDays = (eventDate event):days
+          getDay 0 = "Sunday"
+          getDay 1 = "Monday"
+          getDay 2 = "Tuesday"
+          getDay 3 = "Wednesday"
+          getDay 4 = "Thursday"
+          getDay 5 = "Friday"
+          getDay 6 = "Saturday"
+          getDay a = "Unknown DOW:" ++ show a
+
+getEventDurationString :: Event -> String
+getEventDurationString e = if wholeDay 
+                           then "Whole Day"
+                           else getShortTime startTime ++ " to " ++ getShortTime endTime
+    where startTime = eventTime e
+          endTime = eventEndTime e
+          wholeDay = ((timeOfDayToTime endTime) - (timeOfDayToTime startTime)) > (secondsToDiffTime (18*60*60))
 
 numDaysInYear = 365
 
