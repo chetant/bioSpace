@@ -2,7 +2,7 @@ $(document).ready(function() {
     $("#pane").cycle({
 	fx: 'fade',
 	speed: 'fast',
-	timeout: 4000,
+	timeout: 0, //4000,
 	pause: 1,
 	next: '#nextbutton',
 	prev: '#prevbutton',

@@ -6,58 +6,60 @@
     <body>
         <div .content>
             <div .header>
-             <div style="text-align:center">
-                 <a href=/>
-                     <img .logo src=/static/img/GenspaceHeaderLogo.jpg alt=Logo>
-                 <div .headerlinks>
-                    <div style="text-align:right" align="right">
-                      <div .topbutton>
-                        <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
-                          <input type="hidden" name="cmd" value="_s-xclick">
-                          <input type="hidden" name="hosted_button_id" value="A4X8389J98F3E">
-                          <input type="image" src=@{StaticR img_support_jpg} border="0" name="submit" alt="Support/Donate now!">
-                    <div .login>
-                      <form method="GET" action="http://www.google.com/search">
-                          <input type="hidden" name="hl" value="en">
-                          <input type="hidden" name="as_sitesearch" value="newsite.genspace.org">
-                          <input type="text" size="20" name="as_q" value="Search..." onfocus="if(this.value=='Search...')this.value=''" onblur="if(this.value=='')this.value='Search...'">
-                          <input type="submit" value="Go">
-                    <div>
-                      <ul .mainbar>
-                          <li .entry>
-                               <a .entry href=@{PageR "About"} >About
-                          <li .separator>|
-                          <li .entry>
-                               <a .entry href=@{PeopleR} >People
-                          <li .separator>|
-                          <li .entry>
-                               <a .entry href=@{ProjectsR} >Projects
-                          <li .separator>|
-                          <li .entry>
-                               <a .entry href=@{EventsR} >Events
-                          <li .separator>|
-                          <li .entry>
-                               <a .entry href=@{EventsViewR "courses"} >Courses
-                          <li .separator>|
-                          <li .entry>
-                               <a .entry href=@{PageR "Safety"} >Safety
-                          <li .separator>|
-                          <li .entry>
-                               <a .entry href=@{PageR "Contact_Us"} >Contact Us
-                          <li .separator>|
-                          <li .entry>
-                               <a .entry href=http://genspace.org/blog >Blog
-                    <div .login>
-                        $maybe profile <- mprofile
-                            Welcome back, #{profileFirstName profile}
-                            \ | #
-                            <a href=@{DashboardR} .normallink>Dashboard
-                            \ | #
-                            <a href=@{AuthR LogoutR} .normallink>Logout
-                        $nothing
-                            <a href=@{AuthR LoginR} .normallink>Login
-            <div .header>
-                <hr>
+             <table>
+              <tr>
+               <td style="vertical-align: top">
+                   <a href=/>
+                       <img .logo src=@{StaticR img_genspace_logo_png} alt=Logo>
+               <td>
+                   <div style="text-align:right" align="right">
+                       <span .tagline>New York City's Community Biolab
+                       <form .inline action="https://www.paypal.com/cgi-bin/webscr" method="post">
+                         <input type="hidden" name="cmd" value="_s-xclick">
+                         <input type="hidden" name="hosted_button_id" value="A4X8389J98F3E">
+                         <input type="image" src=@{StaticR img_support_jpg} border="0" name="submit" alt="Support/Donate now!">
+                   <div .login>
+                    <span>
+                     $maybe profile <- mprofile
+                         Welcome back, #{profileFirstName profile}
+                         \ | #
+                         <a href=@{DashboardR} .normallink>Dashboard
+                         \ | #
+                         <a href=@{AuthR LogoutR} .normallink>Logout
+                     $nothing
+                         <a href=@{AuthR LoginR} .normallink>Login
+                    \   #
+                    <span>
+                     <form style="display:inline" method="GET" action="http://www.google.com/search">
+                         <input type="hidden" name="hl" value="en">
+                         <input type="hidden" name="as_sitesearch" value="newsite.genspace.org">
+                         <input type="text" size="20" name="as_q" value="Search..." onfocus="if(this.value=='Search...')this.value=''" onblur="if(this.value=='')this.value='Search...'">
+                         <input type="submit" value="Go">
+                   <div .headerlinks>
+                     <ul .mainbar>
+                         <li .entry>
+                              <a .entry href=@{PageR "About"} >About
+                         <li .separator>|
+                         <li .entry>
+                              <a .entry href=@{PeopleR} >People
+                         <li .separator>|
+                         <li .entry>
+                              <a .entry href=@{ProjectsR} >Projects
+                         <li .separator>|
+                         <li .entry>
+                              <a .entry href=@{EventsR} >Events
+                         <li .separator>|
+                         <li .entry>
+                              <a .entry href=@{EventsViewR "courses"} >Courses
+                         <li .separator>|
+                         <li .entry>
+                              <a .entry href=@{PageR "Resources"} >Resources
+                         <li .separator>|
+                         <li .entry>
+                              <a .entry href=@{PageR "Contact_Us"} >Contact
+                         <li .separator>|
+                         <li .entry>
+                              <a .entry href=http://genspace.org/blog >Blog
             $maybe msg <- mmsg
                 <div #message>#{msg}
             <div .body>

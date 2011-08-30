@@ -4,16 +4,16 @@ body
 
 div
     .header
-        margin-top: 0px
+        margin-top: 10px
         margin-left: 20px
         margin-right: 20px
         margin-bottom: 20px
+	vertical-align: bottom
     .body
         margin: 20px
     .inline
         display: inline
     .headerlinks
-        display: inline-block
         vertical-align: bottom
     .login
         text-align: right
@@ -25,13 +25,10 @@ div
         background-color: #eee
         border: 1px solid #000
     .content
-        width: 980px
+        width: 1045px
         text-align: left
-        display: block
         margin: auto
         margin-top: 0px
-    .topbutton
-        display:inline-block
     #slug
         width: 100%
     #description
@@ -67,9 +64,6 @@ a:hover
         color: #96a97e
 
 img
-    .logo
-        display: inline
-        vertical-align: middle
     .profilepic
         position: relative
         width: auto
@@ -107,3 +101,15 @@ hr
     border-width: 1px
     border-style: dotted
     border-color: #DDDDDD
+.logo
+    width: 350px
+    display: inline
+.inline
+    display: inline
+.tagline
+    font-family: "Arial", Arial, sans-serif
+    font-size: 1.2em
+    float: left
+    margin-left: 20px
+    color: #114d34
+    

@@ -1,60 +1,32 @@
 <div>
- <div #prevbutton>
- <div #nextbutton>
  <div #cycle>
   <div #pane>
    $forall project <- projects
      <div .slide>
          <div .slideLeftPane>
+            <a href=@{ProjectR (projectName project)}>
+              <img .slideLeftImg src="/static/uploads/#{projectFullImage project}">
+         <div .slideRightPane>
             <a .normallink href=@{ProjectR (projectName project)}>
               <h2 .slideTitle>#{projectName project}
             <p .slideText>^{addHtml (preEscapedText (projectSlug project))}
             <a .normallink href=@{ProjectR (projectName project)}>
               <span .moreInfo>More Info
-         <div .slideRightPane>
-            <a href=@{ProjectR (projectName project)}>
-              <img .slideRightImg src="/static/uploads/#{projectFullImage project}">
  <div #pager>
-<hr>
-<table style="text-align: center" cellpadding="15">
-  <tr>
-    <td valign="top">
-        <h3>Location
-        33 Flatbush Avenue, 7th Floor<br>
-        Brooklyn, New York, NY 11217<br>
-    <td valign="top">
-        <h3>Visit
-        By Appointments: <br>
-        Please contact us to schedule.<br>
-        <br>
-        Open House: <br>
-        Wednesdays 6 - 10pm<br>
-    <td valign="top">
-        <h3>Contact
-        Telephone: 347-470-1265<br>
-        Email: info < at > genspace.org<br>
-  <tr>
-    <td valign="top">
-        <h3>Directions
-        <iframe width="200" height="200" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.com/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=33+Flatbush+Avenue,+New+York,+NY&amp;aq=0&amp;sll=40.768697,-73.991818&amp;sspn=0.054343,0.111322&amp;ie=UTF8&amp;hq=&amp;hnear=33+Flatbush+Ave,+Brooklyn,+Kings,+New+York+11217&amp;ll=40.687537,-73.979874&amp;spn=0.013017,0.01708&amp;z=14&amp;iwloc=A&amp;output=embed"></iframe><br /><small><a href="http://maps.google.com/maps?f=q&amp;source=embed&amp;hl=en&amp;geocode=&amp;q=33+Flatbush+Avenue,+New+York,+NY&amp;aq=0&amp;sll=40.768697,-73.991818&amp;sspn=0.054343,0.111322&amp;ie=UTF8&amp;hq=&amp;hnear=33+Flatbush+Ave,+Brooklyn,+Kings,+New+York+11217&amp;ll=40.687537,-73.979874&amp;spn=0.013017,0.01708&amp;z=14&amp;iwloc=A" style="color:#0000FF;text-align:left">View Larger Map</a></small>
-    <td valign="top">
-        <table border=0 style="background-color: #fff; padding: 5px;" cellspacing=0>
-          <tr>
-           <td>
-            <img src="http://groups.google.com/intl/en/images/logos/groups_logo_sm.gif" height=30 width=140 alt="Google Groups">
-          <tr>
-           <td style="padding-left: 5px">
-            <b>Subscribe to GenspaceNYC
-          <form action="http://groups.google.com/group/genspace-announce/boxsubscribe">
-           <tr>
-            <td style="padding-left: 5px;">
-              Email: <input type=text name=email>
-              <input type=submit name="sub" value="Subscribe">
-          <tr>
-           <td align=right>
-            <a href="http://groups.google.com/group/genspace-announce">Visit this group
-    <td valign="top">
-        <h3>Latest Snaps
-            <object width="400" height="300">
-               <param name="flashvars" value="offsite=true&lang=en-us&page_show_url=%2Fphotos%2F66168716%40N05%2Fshow%2F&page_show_back_url=%2Fphotos%2F66168716%40N05%2F&user_id=66168716@N05&jump_to="></param> <param name="movie" value="http://www.flickr.com/apps/slideshow/show.swf?v=104087"></param> <param name="allowFullScreen" value="true">
-               <embed type="application/x-shockwave-flash" src="http://www.flickr.com/apps/slideshow/show.swf?v=104087" allowFullScreen="true" flashvars="offsite=true&lang=en-us&page_show_url=%2Fphotos%2F66168716%40N05%2Fshow%2F&page_show_back_url=%2Fphotos%2F66168716%40N05%2F&user_id=66168716@N05&jump_to=" width="400" height="300">
+<table .bottompanels>
+  <tr .panelrow>
+    <td .panel valign="top">
+        <h3 .paneltitle>Genspace in the News
+        <p>Work in progress. Blah blah blah
+        <p>oh yeah, and blah blah blah blah blah blah blah blah blah
+    <td .panel valign="top">
+        <h3 .paneltitle>Remember when science was fun?
+        <p>At Genspace it still is.
+        <p>Genspace is a nonprofit organization dedicated to promoting education in molecular biology for both children and adults. We work inside and outside of traditional settings, providing a safe, supportive environment for training and mentoring in biotechnology.
+        <p>SUNG GIVE ME THE GODDAMN SIGNIN HTML
+    <td .panel valign="top">
+        <div .flickrbadge>
+          <h3 .paneltitle>Flickr Photos
+          <object width="300" height="225">
+            <param name="flashvars" value="offsite=true&lang=en-us&page_show_url=%2Fphotos%2F66168716%40N05%2Fshow%2F&page_show_back_url=%2Fphotos%2F66168716%40N05%2F&user_id=66168716@N05&jump_to="></param> <param name="movie" value="http://www.flickr.com/apps/slideshow/show.swf?v=104087"></param> <param name="allowFullScreen" value="true">
+            <embed type="application/x-shockwave-flash" src="http://www.flickr.com/apps/slideshow/show.swf?v=104087" allowFullScreen="true" flashvars="offsite=true&lang=en-us&page_show_url=%2Fphotos%2F66168716%40N05%2Fshow%2F&page_show_back_url=%2Fphotos%2F66168716%40N05%2F&user_id=66168716@N05&jump_to=" width="300" height="225">

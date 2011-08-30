@@ -1,38 +1,15 @@
 h1
     text-align: center
 div
-    #prevbutton
-        display: block
-        float: left
-        margin-left: 0px
-        margin-right: 11px
-        margin-top: 0px
-        margin-bottom: 0px
-        width: 19px
-        height: 400px
-        background: url('/static/img/prevButton.png') left center no-repeat
-    #prevbutton:hover
-        background: url('/static/img/prevButton.png') right center no-repeat;
-    #nextbutton
-        display: block
-        float: right
-        margin-left: 11px
-        margin-right: 0px
-        margin-top: 0px
-        margin-bottom: 0px
-        width: 19px
-        height: 400px
-        background: url('/static/img/nextButton.png') right center no-repeat
-    #nextbutton:hover
-        background: url('/static/img/nextButton.png') left center no-repeat;
     #cycle
         background-color: black
-        width: 869px
+        width: 1002px
         height: 400px
         overflow-x: hidden
         overflow-y: hidden
     #pager
         text-align: center
+        margin-bottom: 10px
     #pager a
         background-color: #333
         color: white
@@ -49,27 +26,40 @@ img
         position: relative
         width: 100%
 .slide
-    width: 869px
+    width: 1002px
     height: 400px
-    background-color: #333
+    background-color: #d3d3d3
 .slideLeftPane
     float: left
     height: 100%
-    width: 200px
-    text-align: center
-    vertical-align: text-top
+    width: 668px
 .slideRightPane
     float: right
     height: 100%
-    width: 669px
-.slideRightImg
-    width: 669px
+    width: 330px
+    text-align: left
+.slideLeftImg
+    width: 668px
 .slideTitle
-    color: white
+    color: black
     text-decoration: none
 .slideText
-    color: #aaa
+    color: black
 .moreInfo
     padding: 4px 10px
     background-color: #ddd
     border-radius: 6px
+.bottompanels
+    width: 1002px
+.panel
+    background-color: #d3d3d3
+    text-align: left
+    width: 330px
+.paneltitle
+    margin-top: 5px
+    margin-bottom: 5px
+    margin-left: 15px
+.flickrbadge
+    margin-left: 15px
+p
+    margin-left: 15px
