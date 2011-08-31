@@ -81,4 +81,7 @@ executable         bioSpace
                  , filepath
                  , old-locale
                  , containers
-                 , gd >= 3000 && < 4000
+                 , gd   >= 3000 && < 4000
+                 , feed < 1
+                 , HTTP >= 4000 && < 5000
+                 , network >= 2 && < 3

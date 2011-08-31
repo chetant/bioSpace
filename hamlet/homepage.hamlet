@@ -17,13 +17,28 @@
   <tr .panelrow>
     <td .panel valign="top">
         <h3 .paneltitle>Genspace in the News
-        <p>Work in progress. Blah blah blah
-        <p>oh yeah, and blah blah blah blah blah blah blah blah blah
+        $forall update <- updates
+            <p>
+                <a .updatelink href=#{updateURL update}>
+                    #{updateTitle update}...
+        <p>
+            <a .italics .updatelink href=http://genspace.org/blog>
+                More news items...
     <td .panel valign="top">
         <h3 .paneltitle>Remember when science was fun?
         <p>At Genspace it still is.
         <p>Genspace is a nonprofit organization dedicated to promoting education in molecular biology for both children and adults. We work inside and outside of traditional settings, providing a safe, supportive environment for training and mentoring in biotechnology.
-        <p>SUNG GIVE ME THE SIGNIN+SUBSCRIBE HTML
+        <div .subscribe>
+            <h4 style="margin-bottom: 5px">Subscribe to Genspace!
+            <form style="margin-bottom: 10px" action="http://groups.google.com/group/genspace-announce/boxsubscribe">
+                <input type=text name=email>
+                <input type=submit name="sub" value="Subscribe">
+            <a href="http://www.genspace.org/blog/feed" target=_blank>
+                <img src=@{StaticR img_rssthumb_png} width="40" height="40" border="0" alt="GenspaceNYC Facebook">
+            <a href="https://www.facebook.com/pages/Genspace/174637505918889" target=_blank>
+                <img src=@{StaticR img_facebookthumb_png} width="40" height="40" border="0" alt="GenspaceNYC Facebook">
+            <a href="http://twitter.com/#!/genspacenyc" target=_blank>
+                <img src=@{StaticR img_twitterthumb_png} width="40 height="40" border="0" alt="GenspaceNYC Twitter">
     <td .panel valign="top">
         <div .flickrbadge>
           <h3 .paneltitle>Flickr Photos

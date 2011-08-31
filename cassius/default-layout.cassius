@@ -89,6 +89,9 @@ a
         color: #114d34
     .invisible
         color: #cccccc
+    .updatelink
+        text-decoration: none
+        color: #114d34
 
 h1
     color: #114d34
@@ -113,3 +116,5 @@ hr
     margin-left: 20px
     color: #114d34
     
+.italics
+    font-style: italic

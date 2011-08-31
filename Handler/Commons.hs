@@ -9,6 +9,12 @@ import Data.String
 import Yesod.Auth
 import Yesod.Form.Nic
 import Yesod.Form.Jquery
+import Text.Feed.Import(parseFeedString)
+import Text.Feed.Types
+import Text.RSS.Syntax
+import Data.Maybe(fromJust)
+import Network.HTTP
+import Network.URI(parseURI)
 
 import StaticFiles
 import BioSpace
@@ -64,3 +70,34 @@ isEditableType :: UserType -> Bool
 isEditableType Member = True
 isEditableType CoFounder = True
 isEditableType _ = False
+
+
+
+data UpdateItem = UpdateItem {
+      updateTitle :: String 
+    , updateDesc :: String 
+    , updateURL :: String
+    } deriving (Show, Eq)
+
+getUpdates :: IO [UpdateItem]
+getUpdates = do
+  feedStr <- getFeedFile "http://www.genspace.org/blog/feed"
+  let itemToUpdateItem item = UpdateItem 
+                              (fromJust . rssItemTitle $ item) 
+                              (fromJust . rssItemDescription $ item) 
+                              (fromJust . rssItemLink $ item)
+      mfeed = parseFeedString feedStr
+  return $ maybe [] (\(RSSFeed rss) -> (map itemToUpdateItem . rssItems . rssChannel) rss) mfeed
+
+getFeedFile :: String -> IO String
+getFeedFile url = do
+  let request = Network.HTTP.Request {rqURI = uri, rqMethod = GET, rqHeaders = [], rqBody = "" }
+      uri = fromJust $ parseURI url
+  resp <- simpleHTTP request
+  case resp of
+    Left x -> return ""
+    Right r ->
+        case rspCode r of
+          (2,_,_) -> return $ rspBody r
+          (3,_,_) -> maybe (return "") getFeedFile $ findHeader HdrLocation r
+          _ -> return ""
