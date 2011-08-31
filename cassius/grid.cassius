@@ -1,0 +1,3 @@
+.gridicon
+    width:  #{getImageWidth sample}
+    height: #{getImageHeight sample}

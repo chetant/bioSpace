@@ -1,8 +1,9 @@
-{-# LANGUAGE OverloadedStrings, NoMonomorphismRestriction #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, OverloadedStrings, NoMonomorphismRestriction #-}
 module Handler.Commons where
 
 import Control.Applicative((<$>),(<*>))
 import Control.Monad(when, unless)
+import Data.Maybe(fromMaybe)
 import Data.Text(Text)
 import qualified Data.Text as Text
 import Data.String
@@ -101,3 +102,24 @@ getFeedFile url = do
           (2,_,_) -> return $ rspBody r
           (3,_,_) -> maybe (return "") getFeedFile $ findHeader HdrLocation r
           _ -> return ""
+
+
+class GridResource a where
+    getImageUrl :: a -> Text
+    getImageWidth :: a -> Text
+    getImageHeight :: a -> Text
+    getTitle :: a -> Text
+    getUrl :: a -> Text
+
+gridWidget :: (GridResource a, Monad m) => Int -> [a] -> GGWidget master m ()
+gridWidget numCols [] = return ()
+gridWidget numCols items = do
+  let brkRows _ [] as = reverse as
+      brkRows i (x:xs) (a:as)
+          | i `mod` numCols == 0 = brkRows (i+1) xs ([x]:(a:as))
+          | otherwise            = brkRows (i+1) xs ((x:a):as)
+      brkRows i (x:xs) [] = brkRows (i+1) xs [[x]]
+      mtx = brkRows 0 items []
+      sample = head items
+  addCassius $(cassiusFile "grid")
+  addHamlet $(hamletFile "grid")

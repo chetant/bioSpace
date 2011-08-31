@@ -1,0 +1,9 @@
+<table style="margin:auto">
+    $forall row <- mtx
+        <tr>
+        $forall col <- row
+            <td>
+                <a href=#{getUrl col} .normallink>
+                    <img .gridicon src=#{getImageUrl col}>
+                    <br>
+                    #{getTitle col}

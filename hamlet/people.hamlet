@@ -30,18 +30,7 @@ $if isAdmin
                <a href=@{PeopleFilterR "all"} .normallink>All
  <tr>
   <td>
-    <table style="margin:auto">
-        $forall row <- pplMtx
-            <tr>
-            $forall col <- row
-                <td>
-                    <a href=@{PersonR (profileFirstName col) (profileLastName col)} .normallink>
-                        $maybe mugshotURL <- profileIconImage col
-                            <img .iconpic src=/static/uploads/#{mugshotURL}>
-                        $nothing
-                            <img .iconpic src=/static/img/NoIcon.png>
-                        <br>
-                        #{profileFirstName col} #{profileLastName col}
+    ^{grid}
   <td style="width:15%;text-align:right;vertical-align:text-top">
     $forall entry <- people
         <p>
