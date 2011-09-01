@@ -17,11 +17,19 @@ import Fields.Users
 import Handler.Commons
 import BioSpace
 
+instance GridResource Project where
+    getImageUrl = ("/static/uploads/" <++>) . projectFullImage
+    getImageWidth = const "288px"
+    getImageHeight = const "216px"
+    getTitle = projectName
+    getUrl p = "/project/" <++> projectName p
+
 getProjectsR :: Handler RepHtml
 getProjectsR = do
   mu <- maybeAuthId
   projects <- map snd <$> (runDB $ selectList [] [] 0 0)
   isAdmin <- maybe (return False) checkAdmin mu
+  let grid = gridWidget 3 projects
   defaultLayout $ do
                setTitle "Genspace - Projects"
                addWidget $(widgetFile "projects")

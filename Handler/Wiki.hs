@@ -17,6 +17,13 @@ import Fields.Users
 import Handler.Commons
 import BioSpace
 
+-- instance GridResource GridPage where
+--     getImageUrl =  fromMaybe "/static/img/NoIcon.png" . (("/static/uploads/" <++>) <$>) . profileIconImage
+--     getImageWidth = const "150px"
+--     getImageHeight = const "150px"
+--     getTitle = profileFullName
+--     getUrl p = "/person/" <++> profileFirstName p <++> "/" <++> profileLastName p
+
 getPageR :: Text -> Handler RepHtml
 getPageR name = do
   (pgid, page, owners, ownProfiles) <- getPageAndOwnersOr404 (humanizeName name)
