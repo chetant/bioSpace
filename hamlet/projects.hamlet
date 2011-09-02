@@ -6,7 +6,7 @@
   <td style="width:15%;text-align:right;vertical-align:text-top">
     $forall entry <- projects
         <div style="padding-top:10px">
-            <a href=@{ProjectR (projectName entry)}>#{projectName entry}
+            <a .normallink href=@{ProjectR (projectName entry)}>#{projectName entry}
         $if isAdmin
             <div .inline>
                 <a href=@{ProjectEditR (projectName entry)}>Edit

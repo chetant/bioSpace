@@ -42,7 +42,7 @@ approot :: Text
 -- you would probably want it to be:
 -- > approot = "http://www.yesod.com"
 -- Please note that there is no trailing slash.
-approot = "http://newsite.genspace.org"
+approot = "http://genspace.org"
 #else
 approot = "http://localhost:3000"
 #endif
