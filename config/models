@@ -27,6 +27,10 @@ ProjectUser
     project ProjectId Eq
     user UserId Eq
     UniqueProjectUser user project
+ProjectOrder
+    project ProjectId Eq
+    order Int Desc
+    UniqueProjectOrder project
 
 BlogEntry
     slug Text

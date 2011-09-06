@@ -2,6 +2,7 @@
 module Handler.Root where
 
 import Control.Applicative((<$>))
+import Data.Maybe(catMaybes)
 import Text.Hamlet(renderHtmlText, preEscapedText)
 import StaticFiles
 import BioSpace
@@ -16,7 +17,8 @@ import Handler.Commons
 -- inclined, or create a single monolithic file.
 getRootR :: Handler RepHtml
 getRootR = do
-  (projects :: [Project]) <- map snd <$> (runDB $ selectList [] [] 0 0)
+  (projects :: [Project]) <- runDB $ (catMaybes <$>) $
+                             (map (projectOrderProject . snd) <$> selectList [] [ProjectOrderOrderDesc] 0 0) >>= mapM get
   updates <- take 7 <$> liftIO getUpdates
   defaultLayout $ do
              h2id <- lift newIdent
